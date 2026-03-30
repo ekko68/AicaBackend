@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aicluster.common.common.dao.CmmtBoardCmmntDao">
+
+	<sql id="cmmtBoardCmmnt_cols">
+		 article_id
+		,cmmnt_id
+		,cmmnt
+		,creator_id
+		,created_dt
+		,updater_id
+		,updated_dt
+	</sql>
+
+	<delete id="deleteList">
+		/** CmmtBoardCmmntDao.deleteList */
+		delete from cmmt_board_cmmnt
+		where
+			article_id = #{articleId}
+	</delete>
+
+	<select id="selectList_count" resultType="Long">
+		/** CmmtBoardCmmntDao.selectList_count */
+		select
+			count(*) as cnt
+		from cmmt_board_cmmnt
+		where
+			article_id = #{articleId}
+	</select>
+
+	<select id="selectList" resultType="aicluster.common.common.entity.CmmtBoardCmmnt">
+		/** CmmtBoardCmmntDao.selectList */
+		select
+			<include refid="cmmtBoardCmmnt_cols" />
+			<if test="latest == true">
+				,#{totalItems} + 1 - (row_number() over (order by created_dt desc)) as rn
+			</if>
+			<if test="latest == false">
+				,row_number() over (order by created_dt) as rn
+			</if>
+		from cmmt_board_cmmnt
+		where
+			article_id = #{articleId}
+		offset #{beginRowNum} -1
+		limit #{itemsPerPage}
+	</select>
+
+	<insert id="insert">
+		/** CmmtBoardCmmntDao.insert */
+		insert into cmmt_board_cmmnt (
+			 article_id
+			,cmmnt_id
+			,cmmnt
+			,creator_id
+			,created_dt
+			,updater_id
+			,updated_dt
+		) values (
+			 #{articleId}
+			,#{cmmntId}
+			,#{cmmnt}
+			,#{creatorId}
+			,#{createdDt}
+			,#{updaterId}
+			,#{updatedDt}
+		)
+	</insert>
+
+	<select id="select" resultType="aicluster.common.common.entity.CmmtBoardCmmnt">
+		/** CmmtBoardCmmntDao.select */
+		select
+			<include refid="cmmtBoardCmmnt_cols" />
+		from cmmt_board_cmmnt
+		where
+			article_id = #{articleId}
+			and cmmnt_id = #{cmmntId}
+	</select>
+
+	<update id="update">
+		/** CmmtBoardCmmntDao.update */
+		update cmmt_board_cmmnt set
+			 cmmnt      = #{cmmnt}
+			,creator_id = #{creatorId}
+			,created_dt = #{createdDt}
+			,updater_id = #{updaterId}
+			,updated_dt = #{updatedDt}
+		where
+			article_id = #{articleId}
+			and cmmnt_id = #{cmmntId}
+	</update>
+
+	<delete id="delete">
+		/** CmmtBoardCmmntDao.delete */
+		delete from cmmt_board_cmmnt
+		where
+			article_id = #{articleId}
+			and cmmnt_id = #{cmmntId}
+	</delete>
+</mapper>

@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aicluster.pms.common.dao.UsptExpertCrqfcDao">
+
+	<select id="selectList" resultType="aicluster.pms.common.entity.UsptExpertCrqfc">
+		/** UsptExpertCrqfcDao.selectList */
+		select	 expert_crqfc_id		 /**전문가자격증ID**/
+				,expert_id           /**전문가ID**/
+				,acqdt               /**취득일**/
+				,crqfc_nm            /**자격증명**/
+				,issu_instt_nm       /**발급기관명**/
+				,creator_id          /**생성자ID(CMMT_MEMBER.MEMBER_ID)**/
+				,created_dt          /**생성일시**/
+				,updater_id          /**수정자ID(CMMT_MEMBER.MEMBER_ID)**/
+				,updated_dt          /**수정일시**/
+		from uspt_expert_crqfc
+	    where 1=1
+		 <if test='expertCrqfcId != null and expertCrqfcId != ""'>
+			and  expert_acdmcr_id = #{expertAcdmcrId}
+		</if>
+		<if test='expertId != null and expertId != ""'>
+			and  expert_id = #{expertId}
+		</if>
+	</select>
+
+	<insert id="insert">
+		/** UsptExpertCrqfcDao.insert */
+		insert into uspt_expert_crqfc (
+			 expert_crqfc_id
+			,expert_id
+			,acqdt
+			,crqfc_nm
+			,issu_instt_nm
+			,creator_id
+			,created_dt
+			,updater_id
+			,updated_dt
+		) values (
+			 #{expertCrqfcId}
+			,#{expertId}
+			,#{acqdt}
+			,#{crqfcNm}
+			,#{issuInsttNm}
+			,#{creatorId}
+			,#{createdDt}
+			,#{updaterId}
+			,#{updatedDt}
+		)
+	</insert>
+
+	<update id="update">
+		/** UsptExpertCrqfcDao.update */
+		update uspt_expert_crqfc
+		     set acqdt                     = #{acqdt}
+				, crqfc_nm                  = #{crqfcNm}
+				, issu_instt_nm             = #{issuInsttNm}
+				, updater_id                = #{updaterId}
+				, updated_dt                = #{updatedDt}
+		where expert_crqfc_id = #{expertCrqfcId}
+		   and expert_id                 = #{expertId}
+	</update>
+
+	<delete id="delete">
+		/** UsptExpertCrqfcDao.delete*/
+		delete from uspt_expert_crqfc
+		where expert_crqfc_id = #{expertCrqfcId}
+		   and expert_id                 = #{expertId}
+	</delete>
+
+		<delete id="deleteExpert">
+		/** UsptExpertCrqfcDao.deleteExpert*/
+		delete from uspt_expert_crqfc
+		where expert_id = #{expertId}
+	</delete>
+
+</mapper>

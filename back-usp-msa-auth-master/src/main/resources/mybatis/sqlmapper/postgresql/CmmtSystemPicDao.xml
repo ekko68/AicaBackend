@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aicluster.member.common.dao.CmmtSystemPicDao">
+
+	<select id="selectList" resultType="aicluster.member.common.entity.CmmtSystemPic">
+		/** CmmtSystemPicDao.selectList */
+		select
+			api_system_id as api_sys_id
+			,pic_email as charger_email
+			,pic_nm as charger_nm
+		from
+			cmmt_system_pic
+	</select>
+
+	<insert id="insertList">
+		/** CmmtSystemPicDao.insertList */
+		insert into cmmt_system_pic (
+			api_system_id
+			,pic_email
+			,pic_nm
+		) values
+		<foreach item="item" index="index" collection="list" separator=",">
+			(
+				#{item.apiSysId}
+				,#{item.chargerEmail}
+				,#{item.chargerNm}
+			)
+		</foreach>
+	</insert>
+
+	<delete id="deleteList">
+		/** CmmtSystemPicDao.deleteList */
+		delete from
+			cmmt_system_pic
+	</delete>
+</mapper>

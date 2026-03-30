@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aicluster.pms.common.dao.UsptBsnsSlctnDao">
+
+	<insert id="insert">
+		/** UsptBsnsSlctnDao.insert */
+		insert into uspt_bsns_slctn
+			(
+				bsns_slctn_id
+				, last_slctn_trget_id
+				, total_wct
+				, sport_budget
+				, alotm_cash
+				, alotm_acthng
+				, creator_id
+				, created_dt
+			) values (
+				#{bsnsSlctnId}
+				, #{lastSlctnTrgetId}
+				, #{totalWct}
+				, #{sportBudget}
+				, #{alotmCash}
+				, #{alotmActhng}
+				, #{creatorId}
+				, #{createdDt}
+			)
+	</insert>
+
+
+	<select id="selectList" resultType="aicluster.pms.common.entity.UsptBsnsSlctn">
+		/** UsptBsnsSlctnDao.selectList */
+		select
+			bsns_slctn_id
+			, last_slctn_trget_id
+			, coalesce(total_wct,0) 		as 	total_wct		/*총사업비*/
+			, coalesce(sport_budget,0)		as sport_budget		/*지원예산*/
+			, coalesce(alotm_cash,0)		as alotm_cash		/*부담금현금*/
+			, coalesce(alotm_acthng,0)		as alotm_acthng		/*부담금현물*/
+			, coalesce(alotm_cash + alotm_acthng,0) as alotm_sum /*소계*/
+			, creator_id
+			, created_dt
+		from uspt_bsns_slctn			/*사업선정대상*/
+		where
+			bsns_slctn_id = #{bsnsSlctnId}
+	</select>
+
+
+</mapper>

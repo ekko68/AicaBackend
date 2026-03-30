@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aicluster.pms.common.dao.UsptStdrChargerDao">
+
+	<insert id="insert">
+		/** UsptStdrChargerDao.insert */
+		insert into uspt_stdr_charger
+							(
+								stdr_bsns_cd
+								, insider_id
+								, charger_author_cd
+								, reprsnt_charger
+								, creator_id
+								, created_dt
+								, updater_id
+								, updated_dt
+							)
+					values	(
+								#{stdrBsnsCd}
+								, #{insiderId}
+								, #{chargerAuthorCd}
+								, #{reprsntCharger}
+								, #{creatorId}
+								, #{createdDt}
+								, #{updaterId}
+								, #{updatedDt}
+							)
+	</insert>
+
+
+	<update id="update">
+		/** UsptStdrChargerDao.update */
+		update uspt_stdr_charger
+		set
+			updater_id			= #{updaterId}
+			, updated_dt		= #{updatedDt}
+			, reprsnt_charger	= #{reprsntCharger}
+			, charger_author_cd	= #{chargerAuthorCd}
+		where
+			stdr_bsns_cd = #{stdrBsnsCd}
+			and insider_id = #{insiderId}
+	</update>
+
+
+	<delete id="delete">
+		/** UsptStdrChargerDao.delete */
+		delete from uspt_stdr_charger
+		where
+			stdr_bsns_cd = #{stdrBsnsCd}
+			and insider_id = #{insiderId}
+	</delete>
+
+
+	<select id="selectList" resultType="aicluster.pms.common.entity.UsptStdrCharger">
+		/** UsptStdrChargerDao.selectList */
+		select
+			usc.stdr_bsns_cd
+			, usc.insider_id
+			, ci.member_nm as insider_nm
+			, ci.position_nm
+			, usc.charger_author_cd
+			, usc.reprsnt_charger
+			, fn_cmm_get_code_nm('DEPT_CD', ci.dept_nm) as dept_nm
+		from uspt_stdr_charger usc
+			inner join cmmt_insider ci
+				on ci.member_id = usc.insider_id
+		where
+			usc.stdr_bsns_cd = #{stdrBsnsCd}
+		order by usc.charger_author_cd desc, usc.reprsnt_charger
+	</select>
+
+
+</mapper>

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aicluster.common.common.dao.CmmtInsiderDao">
+
+	<sql id="cmmtInsider_cols">
+		 member_id
+		,login_id
+		,enc_passwd
+		,passwd_dt
+		,passwd_init
+		,member_nm
+		,nickname
+		,gender
+		,dept_nm
+		,position_nm
+		,authority_id
+		,member_st
+		,member_st_dt
+		,enc_tel_no
+		,enc_mobile_no
+		,enc_email
+		,member_ips
+		,refresh_token
+		,last_login_dt
+		,creator_id
+		,created_dt
+		,updater_id
+		,updated_dt
+	</sql>
+
+	<select id="select" resultType="aicluster.common.common.entity.CmmtInsider">
+		/** CmmtInsiderDao.select */
+		select
+			<include refid="cmmtInsider_cols" />
+		from cmmt_insider
+		where
+			member_id = #{memberId}
+	</select>
+</mapper>

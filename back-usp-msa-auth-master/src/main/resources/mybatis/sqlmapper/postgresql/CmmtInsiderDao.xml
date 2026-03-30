@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aicluster.member.common.dao.CmmtInsiderDao">
+
+	<sql id="cmmtInsider_cols">
+		 ${alias}.member_id
+		,${alias}.login_id
+		,${alias}.enc_passwd
+		,${alias}.passwd_dt
+		,${alias}.passwd_init
+		,${alias}.member_nm
+		,${alias}.nickname
+		,${alias}.gender
+		,fn_cmm_get_code_nm('DEPT_CD', ${alias}.dept_nm) as dept_nm
+		,${alias}.position_nm
+		,${alias}.authority_id
+		,(select authority_nm from cmmt_authority where authority_id = ${alias}.authority_id) as authority_nm
+		,${alias}.member_st
+		,fn_cmm_get_code_nm('MEMBER_ST', ${alias}.member_st) as member_st_nm
+		,${alias}.member_st_dt
+		,${alias}.enc_tel_no
+		,${alias}.enc_mobile_no
+		,${alias}.enc_email
+		,${alias}.member_ips
+		,${alias}.refresh_token
+		,${alias}.creator_id
+		,${alias}.created_dt
+		,${alias}.updater_id
+		,${alias}.updated_dt
+		,${alias}.last_login_dt
+	</sql>
+
+	<select id="selectByLoginId" resultType="aicluster.member.common.entity.CmmtInsider">
+		/** CmmtInsiderDao.selectByLoginId */
+		select
+			<include refid="cmmtInsider_cols">
+				<property name="alias" value="a" />
+			</include>
+		from cmmt_insider a
+		where
+			a.login_id = #{loginId}
+	</select>
+
+	<select id="select" resultType="aicluster.member.common.entity.CmmtInsider">
+		/** CmmtInsiderDao.select */
+		select
+			<include refid="cmmtInsider_cols">
+				<property name="alias" value="a" />
+			</include>
+		from cmmt_insider a
+		where
+			a.member_id = #{memberId}
+	</select>
+
+	<select id="selectByRefreshToken" resultType="aicluster.member.common.entity.CmmtInsider">
+		/** CmmtInsiderDao.selectByRefreshToken */
+		select
+			<include refid="cmmtInsider_cols">
+				<property name="alias" value="a" />
+			</include>
+		from cmmt_insider a
+		where
+			a.refresh_token = #{refreshToken}
+	</select>
+
+	<select id="selectCountByAuthorityId" resultType="Long">
+		/** CmmtInsiderDao.selectCountByAuthorityId */
+		select
+			count(member_id) as cnt
+		from cmmt_insider
+		where
+			authority_id = #{authorityId}
+	</select>
+
+	<sql id="selectList_where">
+		1=1
+		<if test='param.loginId != null and param.loginId != ""'>
+			and login_id = #{param.loginId}
+		</if>
+		<if test='param.memberNm != null and param.memberNm != ""'>
+			and member_nm like '%'|| #{param.memberNm} ||'%'
+		</if>
+		<if test='param.memberSt != null and param.memberSt != ""'>
+			and member_st = #{param.memberSt}
+		</if>
+		<if test='param.authorityId != null and param.authorityId != ""'>
+			and authority_id = #{param.authorityId}
+		</if>
+		<if test='param.deptNm != null and param.deptNm != ""'>
+			and dept_nm = #{param.deptNm}
+		</if>
+	</sql>
+
+	<select id="selectCount" resultType="Long">
+		/** CmmtInsiderDao.selectCount */
+		select
+			count(login_id) as cnt
+		from cmmt_insider a
+		where
+			<include refid="selectList_where" />
+	</select>
+
+	<select id="selectList" resultType="aicluster.member.common.dto.InsiderDto">
+		/** CmmtInsiderDao.selectList */
+		select
+			<include refid="cmmtInsider_cols">
+				<property name="alias" value="a" />
+			</include>
+			,row_number() over (order by a.member_nm, a.login_id) as rn
+		from cmmt_insider a
+		where
+			<include refid="selectList_where" />
+		offset #{beginRowNum} -1
+		limit #{itemsPerPage}
+	</select>
+
+	<insert id="insert">
+		/** CmmtInsiderDao.insert */
+		insert into cmmt_insider (
+			 member_id
+			,login_id
+			,enc_passwd
+			,passwd_dt
+			,passwd_init
+			,member_nm
+			,nickname
+			,gender
+			,dept_nm
+			,position_nm
+			,authority_id
+			,member_st
+			,member_st_dt
+			,enc_tel_no
+			,enc_mobile_no
+			,enc_email
+			,member_ips
+			,refresh_token
+			,last_login_dt
+			,creator_id
+			,created_dt
+			,updater_id
+			,updated_dt
+		) values (
+			 #{memberId}
+			,#{loginId}
+			,#{encPasswd}
+			,#{passwdDt}
+			,#{passwdInit}
+			,#{memberNm}
+			,#{nickname}
+			,#{gender}
+			,#{deptNm}
+			,#{positionNm}
+			,#{authorityId}
+			,#{memberSt}
+			,#{memberStDt}
+			,#{encTelNo}
+			,#{encMobileNo}
+			,#{encEmail}
+			,#{memberIps}
+			,#{refreshToken}
+			,#{lastLoginDt}
+			,#{creatorId}
+			,#{createdDt}
+			,#{updaterId}
+			,#{updatedDt}
+		)
+	</insert>
+
+	<update id="update">
+		/** CmmtInsiderDao.update */
+		update cmmt_insider set
+			 login_id      = #{loginId}
+			,enc_passwd    = #{encPasswd}
+			,passwd_dt     = #{passwdDt}
+			,passwd_init   = #{passwdInit}
+			,member_nm     = #{memberNm}
+			,nickname      = #{nickname}
+			,gender        = #{gender}
+			,dept_nm       = #{deptNm}
+			,position_nm   = #{positionNm}
+			,authority_id  = #{authorityId}
+			,member_st     = #{memberSt}
+			,member_st_dt  = #{memberStDt}
+			,enc_tel_no    = #{encTelNo}
+			,enc_mobile_no = #{encMobileNo}
+			,enc_email     = #{encEmail}
+			,member_ips    = #{memberIps}
+			,refresh_token = #{refreshToken}
+			,last_login_dt = #{lastLoginDt}
+			,creator_id    = #{creatorId}
+			,created_dt    = #{createdDt}
+			,updater_id    = #{updaterId}
+			,updated_dt    = #{updatedDt}
+		where
+			member_id = #{memberId}
+	</update>
+
+	<sql id="selectSrchPicList_where">
+		1=1
+		and member_st = 'NORMAL'
+		<if test='param.memberNm != null and param.memberNm != ""'>
+			and member_nm like '%'||#{param.memberNm}||'%'
+		</if>
+		<if test='param.loginId != null and param.loginId != ""'>
+			and login_id = #{param.loginId}
+		</if>
+		<if test='param.deptNm != null and param.deptNm != ""'>
+			and fn_cmm_get_code_nm('DEPT_CD', dept_nm) like '%'||#{param.deptNm}||'%'
+		</if>
+	</sql>
+
+	<select id="selectSrchPicCount" resultType="Long">
+		/** CmmtInsiderDao.selectCount */
+		select
+			count(*) as cnt
+		from cmmt_insider
+		where
+			<include refid="selectSrchPicList_where" />
+	</select>
+
+	<select id="selectSrchPicList" resultType="aicluster.member.api.insider.dto.SrchPicItemDto">
+		/** CmmtInsiderDao.selectSrchPicList */
+		select
+			 a.member_id
+			,a.login_id
+			,a.member_nm
+			,fn_cmm_get_code_nm('DEPT_CD', a.dept_nm) as dept_nm
+			,a.position_nm
+			,b.authority_nm
+			,a.enc_email
+		from cmmt_insider a
+		join cmmt_authority b
+		  on a.authority_id = b.authority_id
+		where
+			<include refid="selectSrchPicList_where" />
+		offset #{beginRowNum} -1
+		limit #{itemsPerPage}
+	</select>
+</mapper>

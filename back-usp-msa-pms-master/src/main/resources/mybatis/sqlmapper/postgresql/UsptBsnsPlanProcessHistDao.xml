@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aicluster.pms.common.dao.UsptBsnsPlanProcessHistDao">
+
+	<!-- 사업계획서처리이력 등록-->
+	<insert id="insert">
+		/** UsptBsnsPlanProcessHistDao.insert */
+				insert into uspt_bsns_plan_process_hist (
+				 plan_process_hist_id
+				,bsns_plan_doc_id
+				,plan_presentn_sttus_cd
+				,resn_cn
+				,creator_id
+				,created_dt
+			) values (
+				 #{planProcessHistId}
+				,#{bsnsPlanDocId}
+				,#{planPresentnSttusCd}
+				,#{resnCn}
+				,#{creatorId}
+				,#{createdDt}
+			)
+	</insert>
+
+	<!-- 사업계획서처리이력 변경-->
+	<update id="update">
+		/** UsptBsnsPlanProcessHistDao.update */
+		update uspt_bsns_plan_process_hist
+			 set  plan_presentn_sttus_cd    = #{planPresentnSttusCd}
+				  ,resn_cn                   = #{resnCn}
+		where plan_process_hist_id = #{planProcessHistId}
+		   and bsns_plan_doc_id = #{bsnsPlanDocId}
+	</update>
+
+	<!-- 사업계획서처리이력 삭제-->
+	<delete id="delete">
+		/** UsptBsnsPlanDocDao.delete */
+		delete from uspt_bsns_plan_process_hist
+		        where plan_process_hist_id = #{planProcessHistId}
+		        <if test='bsnsPlanDocId != null and bsnsPlanDocId != ""'>
+			       and bsns_plan_doc_id = #{bsnsPlanDocId}
+			       </if>
+	</delete>
+
+	<!-- 사업계획서처리이력 조회 -->
+	<select id="selectList" resultType="aicluster.pms.common.entity.UsptBsnsPlanProcessHist">
+		/** UsptBsnsPlanProcessHistDao.selectList */
+			select  row_number() over (order by  created_dt) as rn
+			         ,plan_process_hist_id
+					 ,bsns_plan_doc_id
+					 ,plan_presentn_sttus_cd
+					 ,fn_cmm_get_code_nm('PLAN_PRESENTN_STTUS', ubpph.plan_presentn_sttus_cd) as plan_presentn_sttus_nm	/*사업계획제출상태명*/
+					 ,resn_cn
+					 ,creator_id
+					 ,(select cm.member_nm from cmmt_member cm	 where cm.member_id = ubpph.creator_id )		as creatr_nm			/*회원명(신청자명) */
+					 ,created_dt
+			from uspt_bsns_plan_process_hist ubpph
+		  where	1=1
+		   <if test='planProcessHistId != null and planProcessHistId != ""'>
+			 and 	 plan_process_hist_id = #{planProcessHistId}
+			</if>
+			 <if test='bsnsPlanDocId != null and bsnsPlanDocId != ""'>
+			 and 	 bsns_plan_doc_id = #{bsnsPlanDocId}
+			</if>
+			 <if test='planPresentnSttusCd != null and planPresentnSttusCd != ""'>
+			 and 	 planPresentnSttusCd = #{planPresentnSttusCd}
+			</if>
+				offset
+					#{beginRowNum} - 1
+				limit
+					#{itemsPerPage}
+
+	</select>
+
+	<!-- 사업계획서처리이력 전체 건수조회 -->
+	<select id="selectListCnt" resultType="Long">
+		/** UsptBsnsPlanProcessHistDao.selectListCnt */
+			select  count(1)
+			from uspt_bsns_plan_process_hist
+		  where	1=1
+		   <if test='planProcessHistId != null and planProcessHistId != ""'>
+			 and 	 plan_process_hist_id = #{planProcessHistId}
+			</if>
+			 <if test='bsnsPlanDocId != null and bsnsPlanDocId != ""'>
+			 and 	 bsns_plan_doc_id = #{bsnsPlanDocId}
+			</if>
+			 <if test='planPresentnSttusCd != null and planPresentnSttusCd != ""'>
+			 and 	 planPresentnSttusCd = #{planPresentnSttusCd}
+			</if>
+	</select>
+
+
+</mapper>

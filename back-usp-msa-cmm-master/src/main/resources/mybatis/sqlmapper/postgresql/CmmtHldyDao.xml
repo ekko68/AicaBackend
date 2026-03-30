@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aicluster.common.common.dao.CmmtHldyDao">
+
+	<sql id="cmmtHldy_cols">
+		 ymd
+		,ymd_nm
+		,user_dsgn
+	</sql>
+
+	<select id="selectList" resultType="aicluster.common.common.entity.CmmtHldy">
+		/** CmmtHldyDao.selectList */
+		select
+			<include refid="cmmtHldy_cols" />
+		from
+			cmmt_hldy
+		where
+			substring(ymd, 1, 4) = #{year}
+			<if test="ymdNm != null and ymdNm != ''">
+				and ymd_nm = #{ymdNm}
+			</if>
+	</select>
+
+	<insert id="insert">
+		/** CmmthldyDao.insert */
+		insert into cmmt_hldy (
+			 ymd
+			,ymd_nm
+			,user_dsgn
+		) values (
+			 #{ymd}
+			,#{ymdNm}
+			,#{userDsgn}
+		)
+	</insert>
+
+	<select id="select" resultType="aicluster.common.common.entity.CmmtHldy">
+		/** CmmtHldyDao.select */
+		select
+			<include refid="cmmtHldy_cols" />
+			from
+				cmmt_hldy
+			where
+				ymd = #{ymd}
+	</select>
+
+	<update id="update" >
+		/** CmmtHldyDao.update */
+		update cmmt_hldy set
+			 ymd 		= #{ymd}
+			,ymd_nm 	= #{ymdNm}
+			,user_dsgn  = #{userDsgn}
+		where
+			ymd = #{ymd}
+	</update>
+
+	<insert id="delete" >
+		/** CmmtHldyDao.delete */
+		delete from
+			cmmt_hldy
+		where
+			ymd = #{ymd}
+	</insert>
+
+	<select id="selectSummary" resultType="aicluster.common.common.dto.HldySmmryDto">
+		/** CmmtHldyDao.selectListSummary */
+		SELECT xx.ym
+			, xx.total_cnt
+			, xx.saturday_cnt
+			, xx.sunday_cnt
+			, coalesce(yy.holiday_cnt, 0) as holiday_cnt
+			, coalesce(yy.dsgn_holiday_cnt, 0) as dsgn_holiday_cnt
+			, coalesce(zz.excl_holiday_cnt, 0) as excl_holiday_cnt
+			, (xx.total_cnt - xx.saturday_cnt - xx.sunday_cnt - coalesce(yy.holiday_cnt, 0) - coalesce(yy.dsgn_holiday_cnt, 0)) AS working_day_cnt
+		  FROM (
+		        SELECT to_char(y.date, 'YYYYMM') AS ym
+		             , count(y.date) AS total_cnt
+		             , sum(saturday) AS saturday_cnt
+		             , sum(sunday)   AS sunday_cnt
+		          FROM (
+		                SELECT x.date
+		                     , EXTRACT(ISODOW FROM x.date) AS week
+		                     , CASE WHEN EXTRACT(ISODOW FROM x.date) = 6 THEN 1 ELSE 0 END AS saturday
+		                     , CASE WHEN EXTRACT(ISODOW FROM x.date) = 7 THEN 1 ELSE 0 END AS sunday
+		                  FROM (
+		                        SELECT a.date + b.idx AS date
+		                          FROM ( SELECT (#{year}||'-01-01')::date AS date ) a
+		                         CROSS JOIN ( SELECT generate_series(0, 364) AS idx ) b
+		                       ) x
+		               ) y
+		         GROUP BY to_char(y.date, 'YYYYMM')
+		         ORDER BY to_char(y.date, 'YYYYMM')
+		       ) XX
+		 LEFT JOIN (
+		        SELECT SUBSTRING(YMD, 1, 6) AS YM
+		             , SUM(CASE WHEN USER_DSGN = FALSE THEN 1 ELSE 0 END) AS holiday_cnt
+		             , SUM(CASE WHEN USER_DSGN = TRUE  THEN 1 ELSE 0 END) AS dsgn_holiday_cnt
+		          FROM CMMT_HLDY
+		         WHERE SUBSTRING(YMD, 1, 4) = #{year}
+		         GROUP BY SUBSTRING(YMD, 1, 6)
+		       ) YY
+		    ON XX.YM = YY.YM
+		 LEFT JOIN (
+		        SELECT SUBSTRING(YMD, 1, 6) AS YM
+		             , COUNT(YMD) AS excl_holiday_cnt
+		          FROM CMMT_HLDY_EXCL
+		         WHERE SUBSTRING(YMD, 1, 4) = #{year}
+		         GROUP BY SUBSTRING(YMD, 1, 6)
+		       ) ZZ
+		    ON XX.YM = ZZ.YM
+
+	</select>
+
+	<select id="selectMonthList" resultType="aicluster.common.api.holiday.dto.MonthHolidaysDto">
+		/** CmmtHldyDao.selectMonthList */
+		select
+			 ymd
+			,ymd_nm
+			,true as holiday_yn
+		from
+			cmmt_hldy ch
+		where
+			ymd like #{ym}||'%'
+		union
+			all
+		select
+			 ymd
+			,ymd_nm
+			,false as holiday_yn
+		from
+			cmmt_hldy_excl che
+		where
+			ymd like #{ym}||'%'
+
+	</select>
+</mapper>

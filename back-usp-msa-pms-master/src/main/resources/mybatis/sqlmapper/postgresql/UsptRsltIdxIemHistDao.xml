@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aicluster.pms.common.dao.UsptRsltIdxIemHistDao">
+
+	<insert id="insert">
+		/** UsptRsltIdxIemHistDao.insert */
+		insert into uspt_rslt_idx_iem_hist
+			(
+				rslt_hist_id
+				, rslt_idx_iem_id
+				, pruf_attachment_id
+				, creator_id
+				, created_dt
+			) values (
+				#{rsltHistId}
+				, #{rsltIdxIemId}
+				, #{prufAttachmentId}
+				, #{creatorId}
+				, #{createdDt}
+			)
+	</insert>
+
+	<select id="selectList" resultType="aicluster.pms.common.entity.UsptRsltIdxIemHist">
+		/** UsptRsltIdxIemHistDao.selectList */
+		select
+			uriih.rslt_hist_id
+			, uriih.rslt_idx_iem_id
+			, uriih.pruf_attachment_id
+			, ubri.rslt_idx_nm
+			, ubri.rslt_idx_type_cd
+		from uspt_rslt_idx_iem_hist uriih
+			inner join uspt_rslt_idx_iem urii
+				on urii.rslt_idx_iem_id = uriih.rslt_idx_iem_id
+			inner join uspt_bsns_rslt_idx ubri
+				on ubri.rslt_idx_id = urii.rslt_idx_id
+		where
+			uriih.rslt_hist_id = #{rsltHistId}
+		order by ubri.rslt_idx_id
+	</select>
+</mapper>

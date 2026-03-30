@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aicluster.pms.common.dao.UsptBsnsClDao">
+
+	<select id="selectList" resultType="aicluster.pms.common.entity.UsptBsnsCl">
+		/** BsnsClDao.selectList */
+		select
+			bsns_cl_id
+			, parent_bsns_cl_id
+			, bsns_cl_nm
+			, sort_order
+			, enabled
+			, creator_id
+			, created_dt
+			, updater_id
+			, updated_dt
+		from uspt_bsns_cl
+		<where>
+			<choose>
+				<when test='parentBsnsClId != null and parentBsnsClId != ""'>
+					and parent_bsns_cl_id = #{parentBsnsClId}
+				</when>
+				<otherwise>
+					and parent_bsns_cl_id is null
+				</otherwise>
+			</choose>
+		</where>
+	</select>
+
+
+	<insert id="insert">
+		insert into uspt_bsns_cl(bsns_cl_id
+								, parent_bsns_cl_id
+								, bsns_cl_nm
+								, sort_order
+								, enabled
+								, creator_id
+								, created_dt
+								, updater_id
+								, updated_dt)
+						values	(#{bsnsClId}
+								, #{parentBsnsClId}
+								, #{bsnsClNm}
+								, #{sortOrder}
+								, #{enabled}
+								, #{creatorId}
+								, #{createdDt}
+								, #{updaterId}
+								, #{updatedDt}
+								)
+
+	</insert>
+
+
+	<update id="update">
+		/** BsnsClDao.update */
+		update uspt_bsns_cl
+		set
+			bsns_cl_nm		= #{bsnsClNm}
+			, sort_order	= #{sortOrder}
+			, enabled		= #{enabled}
+			, updater_id	= #{updaterId}
+			, updated_dt	= #{updatedDt}
+		where
+			bsns_cl_id = #{bsnsClId}
+	</update>
+
+
+	<delete id="delete">
+		/** BsnsClDao.delete */
+		delete from uspt_bsns_cl
+		where
+			bsns_cl_id = #{bsnsClId}
+	</delete>
+
+
+	<select id="selectUseCnt" resultType="Integer">
+		/** BsnsClDao.selectUseCnt */
+		select
+			count(*)
+		from uspt_stdr_bsns
+		where
+			bsns_cl_id = #{bsnsClId}
+	</select>
+
+</mapper>

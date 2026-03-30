@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aicluster.pms.common.dao.UsptEvlMfcmmDao">
+
+	<insert id="insert">
+		/** UsptEvlMfcmmDao.insert */
+		insert into uspt_evl_mfcmm (
+			   evl_mfcmm_id
+			 , evl_cmit_id
+			 , extrc_mfcmm_id
+			 , expert_id
+			 , enc_password
+			 , use_bgnde
+			 , use_endde
+			 , refresh_token
+			 , charmn
+			 , atend_sttus_cd
+			 , atend_dt
+			 , evas_agre_at
+			 , evas_resn_cn
+			 , creator_id
+			 , created_dt
+		) values (
+			   #{evlMfcmmId}
+			 , (
+			 	select b.evl_cmit_id
+			 	  from USPT_EXTRC_MFCMM a					/*추출위원*/
+					   inner join USPT_EVL_MFCMM_EXTRC b 	/*평가위원추출*/
+							   on a.MFCMM_EXTRC_ID = b.MFCMM_EXTRC_ID
+				 where extrc_mfcmm_id = #{extrcMfcmmId}
+			   )
+			 , #{extrcMfcmmId}
+			 , (select expert_id
+			      from uspt_extrc_mfcmm
+				 where extrc_mfcmm_id = #{extrcMfcmmId}
+			   )
+			 , #{encPassword}
+			 , #{useBgnde}
+			 , #{useEndde}
+			 , #{refreshToken}
+			 , #{charmn}
+			 , #{atendSttusCd}
+			 , #{atendDt}
+			 , #{evasAgreAt}
+			 , #{evasResnCn}
+			 , #{creatorId}
+			 , #{createdDt}
+		)
+	</insert>
+
+
+	<select id="select" resultType="aicluster.pms.common.entity.UsptEvlMfcmm">
+		/** UsptEvlMfcmmDao.select */
+		select
+			uem.evl_mfcmm_id
+			, uem.evl_cmit_id
+			, uem.extrc_mfcmm_id
+			, uem.expert_id
+			, (select expert_nm from uspt_expert where expert_id = uem.expert_id) as evl_mfcmm_nm
+			, uem.enc_password
+			, uem.use_bgnde
+			, uem.use_endde
+			, uem.refresh_token
+			, uem.charmn
+			, uem.atend_sttus_cd
+			, uem.atend_dt
+			, uem.evas_agre_at
+			, uem.evas_resn_cn
+			, (select max(mfcmm_evl_sttus_cd) from uspt_evl_mfcmm_result where evl_mfcmm_id = uem.evl_mfcmm_id) as mfcmm_evl_sttus_cd
+			, uem.creator_id
+			, uem.created_dt
+			, uem.updater_id
+			, uem.updated_dt
+		from uspt_evl_mfcmm uem
+		<where>
+			<if test='evlMfcmmId != null and evlMfcmmId != ""'>
+				and uem.evl_mfcmm_id = #{evlMfcmmId}
+			</if>
+			<if test='evlCmitId != null and evlCmitId != ""'>
+				and uem.evl_cmit_id = #{evlCmitId}
+			</if>
+			<if test='extrcMfcmmId != null and extrcMfcmmId != ""'>
+				and uem.extrc_mfcmm_id = #{extrcMfcmmId}
+			</if>
+		</where>
+	</select>
+
+	<select id="selectList" resultType="aicluster.pms.common.entity.UsptEvlMfcmm">
+		/** UsptEvlMfcmmDao.selectList */
+		select a.evl_mfcmm_id
+			 , a.evl_cmit_id
+			 , a.extrc_mfcmm_id
+			 , a.login_id
+			 , a.enc_password
+			 , a.use_bgnde
+			 , a.use_endde
+			 , a.refresh_token
+			 , a.charmn
+			 , case when a.charmn = true then '평가위원장' else '평가위원' end as charmn_nm
+			 , a.atend_sttus_cd
+			 , a.atend_dt
+			 , a.evas
+			 , a.evas_resn_cn
+ 			 , c.expert_nm as evl_mfcmm_nm
+			 , c.wrc_nm
+		  from uspt_evl_mfcmm a
+		   	   inner join uspt_extrc_mfcmm b
+		   	   		   on a.extrc_mfcmm_id = b.extrc_mfcmm_id
+  			   inner join uspt_expert c
+  			   		   on b.expert_id = c.expert_id
+		 where a.evl_cmit_id = #{evlCmitId}
+	</select>
+
+	<delete id="deleteByCmitId">
+		/** UsptEvlMfcmmDao.deleteByCmitId */
+		delete
+		  from uspt_evl_mfcmm
+		 where evl_cmit_id = #{evlCmitId}
+	</delete>
+
+
+	<select id="selectEvlAtendList" resultType="aicluster.pms.common.dto.EvlAtendListDto">
+		/** UsptEvlMfcmmDao.selectEvlAtendList */
+		select
+			uem.evl_mfcmm_id
+			, ue.expert_nm			as evl_mfcmm_nm
+			, uem.charmn
+			, uem.atend_sttus_cd
+			, fn_cmm_get_code_nm('ATEND_STTUS', uem.atend_sttus_cd ) as atend_sttus_nm
+			, uem.evas_agre_at
+			, uem.enc_password
+		from uspt_evl_mfcmm uem
+			inner join uspt_expert ue
+				on ue.expert_id = uem.expert_id
+		where
+			uem.evl_cmit_id = #{evlCmitId}
+	</select>
+
+
+	<select id="selectCharmn" resultType="aicluster.pms.common.entity.UsptEvlMfcmm">
+		/** UsptEvlMfcmmDao.selectCharmn */
+		select
+			uem.evl_mfcmm_id
+			, uem.evl_cmit_id
+			, uem.extrc_mfcmm_id
+			, uem.expert_id
+			, uem.enc_password
+			, uem.use_bgnde
+			, uem.use_endde
+			, uem.refresh_token
+			, uem.charmn
+			, uem.atend_sttus_cd
+			, uem.atend_dt
+			, uem.evas_agre_at
+			, uem.evas_resn_cn
+			, uem.creator_id
+			, uem.created_dt
+			, uem.updater_id
+			, uem.updated_dt
+		from uspt_evl_mfcmm uem
+		where
+			uem.evl_cmit_id = #{evlCmitId}
+			and uem.charmn = true
+	</select>
+
+	<update id="updateCharmn">
+		/** UsptEvlMfcmmDao.updateCharmn */
+		update uspt_evl_mfcmm
+		set
+			charmn = ${charmn}
+			, updater_id = #{updaterId}
+			, updated_dt = #{updatedDt}
+		where
+			evl_mfcmm_id = #{evlMfcmmId}
+	</update>
+
+
+	<update id="updateAtendSttus">
+		/** UsptEvlMfcmmDao.updateAtendSttus */
+		update uspt_evl_mfcmm
+		set
+			atend_sttus_cd = #{atendSttusCd}
+			, updater_id = #{updaterId}
+			, updated_dt = #{updatedDt}
+			, evas_resn_cn = #{evasResnCn}
+		where
+			evl_mfcmm_id = #{evlMfcmmId}
+	</update>
+
+</mapper>

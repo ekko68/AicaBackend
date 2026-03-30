@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aicluster.pms.common.dao.UsptBsnsIoeSetupDao">
+
+	<resultMap id="ioeSetupMap" type="aicluster.pms.common.dto.IoeSetupDto">
+		<collection property="taxitmList" column="{wctIoeId = wct_ioe_id, bsnsCd = bsns_cd}"
+					ofType="aicluster.pms.common.dto.IoeSetupTaxitmDto"
+					select="selectTaxitmList"></collection>
+	</resultMap>
+
+	<select id="selectList" resultMap="ioeSetupMap">
+		/** UsptBsnsIoeSetupDao.selectList */
+		select
+			uwi.wct_ioe_id
+			, uwi.wct_ioe_nm
+			, case when ubis.bsns_cd is null then false else true end as is_checked
+			, #{bsnsCd} as bsns_cd
+		from uspt_wct_ioe uwi
+				left outer join uspt_bsns_ioe_setup ubis
+					on ubis.wct_ioe_id = uwi.wct_ioe_id
+					and ubis.bsns_cd = #{bsnsCd}
+	</select>
+
+	<select id="selectTaxitmList" resultType="aicluster.pms.common.dto.IoeSetupTaxitmDto">
+		/** UsptBsnsIoeSetupDao.selectTaxitmList */
+		select
+			uwt.wct_taxitm_id
+			, uwt.wct_taxitm_nm
+			, case when usts.bsns_cd is null then false else true end as is_checked
+		from uspt_wct_taxitm uwt
+				left outer join uspt_bsns_taxitm_setup usts
+					on usts.wct_taxitm_id = uwt.wct_taxitm_id
+					and usts.bsns_cd = #{bsnsCd}
+		where
+			uwt.wct_ioe_id = #{wctIoeId}
+		order by uwt.wct_ioe_id
+	</select>
+
+	<insert id="insert">
+		/** UsptBsnsIoeSetupDao.insert */
+		insert into uspt_bsns_ioe_setup
+									(
+										bsns_cd
+										, wct_ioe_id
+										, creator_id
+										, created_dt
+									)
+							values	(
+										#{bsnsCd}
+										, #{wctIoeId}
+										, #{creatorId}
+										, #{createdDt}
+									)
+	</insert>
+
+
+	<insert id="insertList">
+		/** UsptBsnsIoeSetupDao.insertList */
+		insert into uspt_bsns_ioe_setup
+			(
+				bsns_cd
+				, wct_ioe_id
+				, creator_id
+				, created_dt
+			) values
+		<foreach item="item" collection="list" separator=",">
+			(
+				#{item.bsnsCd}
+				, #{item.wctIoeId}
+				, #{item.creatorId}
+				, #{item.createdDt}
+			)
+		</foreach>
+	</insert>
+
+	<delete id="deleteAll">
+		/** UsptBsnsIoeSetupDao.deleteAll */
+		delete from uspt_bsns_ioe_setup
+		where
+			bsns_cd = #{bsnsCd}
+	</delete>
+</mapper>

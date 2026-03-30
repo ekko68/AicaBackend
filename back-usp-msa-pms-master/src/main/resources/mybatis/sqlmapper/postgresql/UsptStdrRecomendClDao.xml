@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aicluster.pms.common.dao.UsptStdrRecomendClDao">
+
+	<insert id="insert">
+		/** UsptStdrRecomendClDao.insert */
+		insert into uspt_stdr_recomend_cl
+							(
+								stdr_bsns_cd
+								, recomend_cl_type_cd
+								, recomend_cl_cd
+								, creator_id
+								, created_dt
+							)
+					values	(
+								#{stdrBsnsCd}
+								, #{recomendClTypeCd}
+								, #{recomendClCd}
+								, #{creatorId}
+								, #{createdDt}
+							)
+	</insert>
+
+
+	<delete id="deleteAll">
+		/** UsptStdrRecomendClDao.deleteAll */
+		delete from uspt_stdr_recomend_cl
+		where
+			stdr_bsns_cd = #{stdrBsnsCd}
+	</delete>
+
+
+	<select id="selectList" resultType="aicluster.pms.common.dto.RecomendClDto">
+		/** UsptStdrRecomendClDao.selectList */
+		select
+			cc.code				as recomend_cl_cd
+			, cc.code_nm		as recomend_cl_nm
+			, cc.code_type		as recomend_cl_type_cd
+			, case when usrc.stdr_bsns_cd is null then false else true end as is_checked
+		from cmmt_code cc
+			left outer join uspt_stdr_recomend_cl usrc
+				on usrc.recomend_cl_type_cd = cc.code_type
+				and usrc.recomend_cl_cd = cc.code
+				and usrc.stdr_bsns_cd = #{stdrBsnsCd}
+		where
+			cc.code_group = '${@aicluster.pms.common.util.Code@RC_CODE_GROUP}'
+			and cc.enabled = true
+			and cc.code_type in ('${@aicluster.pms.common.util.Code@RC_BSR}', '${@aicluster.pms.common.util.Code@RC_FNTN}')
+		order by cc.code_type desc, cc.sort_order
+	</select>
+
+
+</mapper>

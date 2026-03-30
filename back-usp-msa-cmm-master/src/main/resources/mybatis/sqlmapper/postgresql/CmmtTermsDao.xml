@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aicluster.common.common.dao.CmmtTermsDao">
+
+	<insert id="insert">
+		/** CmmtTermsDao.insert */
+		insert into cmmt_terms (
+			 terms_type
+			,begin_day
+			,required
+			,terms_cn
+			,possess_term_cd
+			,creator_id
+			,created_dt
+			,updater_id
+			,updated_dt
+		) values (
+			 #{termsType}
+			,#{beginDay}
+			,#{required}
+			,#{termsCn}
+			,#{possessTermCd}
+			,#{creatorId}
+			,#{createdDt}
+			,#{updaterId}
+			,#{updatedDt}
+		)
+	</insert>
+
+	<select id="select" resultType="aicluster.common.common.entity.CmmtTerms">
+		/** CmmtTermsDao.select */
+		select
+			 terms_type
+			,fn_cmm_get_code_nm('TERMS_TYPE', terms_type) as terms_type_nm
+			,begin_day
+			,required
+			,terms_cn
+			,possess_term_cd
+			,fn_cmm_get_code_nm('POSSESS_TERM', possess_term_cd) as possess_term_nm
+			,creator_id
+			,created_dt
+			,updater_id
+			,updated_dt
+		from cmmt_terms
+		where
+			terms_type = #{termsType}
+			and begin_day = #{beginDay}
+			and required = #{required}
+	</select>
+
+	<select id="selectSet" resultType="aicluster.common.common.entity.CmmtTerms">
+		/** CmmtTermsDao.select */
+		select
+			 terms_type
+			,fn_cmm_get_code_nm('TERMS_TYPE', terms_type) as terms_type_nm
+			,begin_day
+			,required
+			,terms_cn
+			,possess_term_cd
+			,fn_cmm_get_code_nm('POSSESS_TERM', possess_term_cd) as possess_term_nm
+			,creator_id
+			,created_dt
+			,updater_id
+			,updated_dt
+		from cmmt_terms
+		where
+			terms_type = #{termsType}
+			and begin_day = #{beginDay}
+		order by required desc
+		</select>
+
+	<select id="selectList_beginDay" resultType="aicluster.common.common.dto.CmmtTermsListItem">
+		/** CmmtTermsDao.selectList_beginDay */
+		select distinct
+			 terms_type
+			,fn_cmm_get_code_nm('TERMS_TYPE', terms_type) as terms_type_nm
+			,begin_day
+		from cmmt_terms
+		where
+			terms_type = #{termsType}
+		<if test='srchCd == "TODAY"'>
+			<![CDATA[and begin_day = (select max(begin_day) from cmmt_terms where terms_type=#{termsType} and begin_day <= to_char(now(), 'yyyymmdd'))]]>
+		</if>
+		order by
+			begin_day desc
+	</select>
+
+	<update id="update">
+		/** CmmtTermsDao.update */
+		update cmmt_terms set
+			 terms_cn   = #{termsCn}
+			,possess_term_cd = #{possessTermCd}
+			,creator_id = #{creatorId}
+			,created_dt = #{createdDt}
+			,updater_id = #{updaterId}
+			,updated_dt = #{updatedDt}
+		where
+			terms_type = #{termsType}
+			and begin_day = #{beginDay}
+			and required   = #{required}
+	</update>
+
+	<delete id="delete">
+		/** CmmtTermsDao.delete */
+		delete from cmmt_terms
+		where
+			terms_type = #{termsType}
+			and begin_day = #{beginDay}
+	</delete>
+
+	<select id="select_today" resultType="aicluster.common.common.entity.CmmtTerms">
+		/** CmmtTermsDao.select_today */
+		select
+			terms_type
+			,fn_cmm_get_code_nm('TERMS_TYPE', terms_type) as terms_type_nm
+			,begin_day
+			,terms_cn
+			,required
+			,possess_term_cd
+			,fn_cmm_get_code_nm('POSSESS_TERM', possess_term_cd) as possess_term_nm
+		from cmmt_terms
+		where
+			terms_type = #{termsType}
+		<![CDATA[and begin_day = (select max(begin_day) from cmmt_terms where terms_type=#{termsType} and begin_day <= to_char(now(), 'yyyymmdd'))]]>
+		order by required desc
+	</select>
+</mapper>

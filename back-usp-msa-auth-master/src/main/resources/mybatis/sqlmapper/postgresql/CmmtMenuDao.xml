@@ -1,0 +1,458 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aicluster.member.common.dao.CmmtMenuDao">
+
+	<sql id="cmmtMenu-Columns">
+		  ${alias}.system_id
+		, ${alias}.menu_id
+		, ${alias}.menu_nm
+		, ${alias}.url
+		, ${alias}.new_window
+		, ${alias}.parent_menu_id
+		, ${alias}.sort_order
+		, ${alias}.remark
+		, ${alias}.creator_id
+		, ${alias}.created_dt
+		, ${alias}.updater_id
+		, ${alias}.updated_dt
+	</sql>
+
+	<sql id="cmmtMenu-Columns-level">
+		  system_id
+		, menu_id
+		<!--, lpad(' ', (LEVEL-${decLevel}))||menu_nm AS menu_nm-->
+		, menu_nm
+		, url
+		, new_window
+		, parent_menu_id
+		, sort_order
+		, remark
+		, creator_id
+		, created_dt
+		, updater_id
+		, updated_dt
+	</sql>
+
+	<sql id="cmmtMenu-hierarchy">
+		WITH RECURSIVE cmmt_menu_hierarchy
+		    AS (
+		        SELECT
+		        	<include refid="cmmtMenu-Columns"><property name="alias" value="cm"/></include>
+		              , 1 AS LEVEL
+		              , ARRAY['1'||LPAD(CAST(cm.sort_order AS TEXT), 3, '0')] AS PATH
+		              , false AS CYCLE
+		          FROM cmmt_menu cm
+		         WHERE cm.system_id = #{systemId}
+		           AND ${whereMenu}
+		         UNION ALL
+		        SELECT
+		        	<include refid="cmmtMenu-Columns"><property name="alias" value="cm2"/></include>
+		              , cm1.LEVEL + 1 AS LEVEL
+		              , cm1.PATH||CAST((cm1.LEVEL + 1) AS TEXT)||LPAD(CAST(cm2.sort_order AS TEXT), 3, '0') AS PATH
+		              , CAST((cm1.LEVEL + 1) AS TEXT)||LPAD(CAST(cm2.sort_order AS TEXT), 3, '0') = ANY(PATH) AS CYCLE
+		          FROM cmmt_menu_hierarchy cm1
+		          JOIN cmmt_menu cm2
+		            ON cm1.system_id = cm2.system_id
+		           AND cm2.parent_menu_id = cm1.menu_id
+		         WHERE cm1.system_id = #{systemId}
+		           AND NOT CYCLE
+		        )
+	</sql>
+
+	<sql id="cmmtMenu-reverseHierarchy">
+		WITH RECURSIVE cmmt_menu_reverse_hierarchy
+		    AS (
+		        SELECT
+		        	<include refid="cmmtMenu-Columns"><property name="alias" value="cm"/></include>
+		              , 1 AS LEVEL
+		              , ARRAY['1'||LPAD(CAST(cm.sort_order AS TEXT), 3, '0')] AS PATH
+		              , false AS CYCLE
+		          FROM cmmt_menu cm
+		         WHERE cm.system_id = #{systemId}
+		           AND cm.menu_id = #{menuId}
+		         UNION ALL
+		        SELECT
+		        	<include refid="cmmtMenu-Columns"><property name="alias" value="cm2"/></include>
+		              , cm1.LEVEL + 1 AS LEVEL
+		              , CAST((cm1.LEVEL + 1) AS TEXT)||LPAD(CAST(cm2.sort_order AS TEXT), 3, '0')||cm1.PATH AS PATH
+		              , CAST((cm1.LEVEL + 1) AS TEXT)||LPAD(CAST(cm2.sort_order AS TEXT), 3, '0') = ANY(PATH) AS CYCLE
+		          FROM cmmt_menu_reverse_hierarchy cm1
+		          JOIN cmmt_menu cm2
+		            ON cm1.system_id = cm2.system_id
+		           AND cm2.menu_id = cm1.parent_menu_id
+		         WHERE cm1.system_id = #{systemId}
+		           AND NOT CYCLE
+		        )
+	</sql>
+
+	<sql id="cmmtMenu-user-hierarchy">
+		WITH RECURSIVE cmmt_menu_by_role
+		    AS (<!-- role id를 기준으로 하위 메뉴가 없는 메뉴(화면URL)들만 도출하여 역으로 Root 메뉴까지 목록화한다. -->
+				SELECT
+					<include refid="cmmtMenu-Columns"><property name="alias" value="cm"/></include>
+				  FROM cmmt_menu cm
+				 WHERE cm.system_id = #{systemId}
+				   AND cm.menu_id in (
+						select a.menu_id
+						  from cmmt_menu a
+						  left join cmmt_menu b
+						    on a.system_id = b.system_id
+						       and a.menu_id = b.parent_menu_id
+						 where a.system_id = #{systemId}
+						   and a.menu_id in (
+										select 	menu_id
+										from 	cmmt_menu_role
+										where
+											system_id = #{systemId}
+											and ${whereRole}
+										)
+						   and b.menu_id is null
+						)
+				 UNION ALL
+				SELECT
+					<include refid="cmmtMenu-Columns"><property name="alias" value="cm2"/></include>
+				  FROM cmmt_menu_by_role cm1
+				  JOIN cmmt_menu cm2
+				    ON cm1.system_id = cm2.system_id
+				   AND cm2.menu_id = cm1.parent_menu_id
+				 WHERE cm1.system_id = #{systemId}
+		        )
+		     , cmmt_menu_hierarchy
+		    as (<!-- 앞서 도출된 메뉴 목록에 대해서 중복 제거 후 Hierarchy로 구조화한다. -->
+		        SELECT
+					<include refid="cmmtMenu-Columns"><property name="alias" value="cm"/></include>
+		              , 1 AS LEVEL
+		              , ARRAY['1'||LPAD(CAST(cm.sort_order AS TEXT), 3, '0')] AS PATH
+		              , false AS CYCLE
+		          FROM (select distinct * from cmmt_menu_by_role) cm
+		         WHERE cm.system_id = #{systemId}
+		           AND cm.parent_menu_id = 'ROOT'
+		         UNION ALL
+		        SELECT
+					<include refid="cmmtMenu-Columns"><property name="alias" value="cm2"/></include>
+		              , cm1.LEVEL + 1 AS LEVEL
+		              , cm1.PATH||CAST((cm1.LEVEL + 1) AS TEXT)||LPAD(CAST(cm2.sort_order AS TEXT), 3, '0') AS PATH
+		              , CAST((cm1.LEVEL + 1) AS TEXT)||LPAD(CAST(cm2.sort_order AS TEXT), 3, '0') = ANY(PATH) AS CYCLE
+		          FROM cmmt_menu_hierarchy cm1
+		          JOIN (select distinct * from cmmt_menu_by_role) cm2
+		            ON cm1.system_id = cm2.system_id
+		           AND cm2.parent_menu_id = cm1.menu_id
+		         WHERE cm1.system_id = #{systemId}
+		           AND NOT CYCLE
+		       )
+	</sql>
+
+	<sql id="cmmtMenu-user-allMenu-hierarchy">
+		WITH RECURSIVE cmmt_menu_by_role
+		    AS (<!-- role id를 기준으로 하위 메뉴가 없는 메뉴(화면URL)들만 도출하여 역으로 Root 메뉴까지 목록화한다. -->
+				SELECT
+					<include refid="cmmtMenu-Columns"><property name="alias" value="cm"/></include>
+				  FROM cmmt_menu cm
+				 WHERE cm.system_id = #{systemId}
+				   AND cm.menu_id in (
+						select a.menu_id
+						  from cmmt_menu a
+						  left join cmmt_menu b
+						    on a.system_id = b.system_id
+						       and a.menu_id = b.parent_menu_id
+						 where a.system_id = #{systemId}
+						   and a.menu_id in (
+										select 	menu_id
+										from 	cmmt_menu_role
+										where
+											system_id = #{systemId}
+											and ${whereRole}
+										)
+						   and b.menu_id is null
+						)
+				 UNION ALL
+				SELECT
+					<include refid="cmmtMenu-Columns"><property name="alias" value="cm2"/></include>
+				  FROM cmmt_menu_by_role cm1
+				  JOIN cmmt_menu cm2
+				    ON cm1.system_id = cm2.system_id
+				   AND cm2.menu_id = cm1.parent_menu_id
+				 WHERE cm1.system_id = #{systemId}
+		        )
+		     , cmmt_menu_hierarchy
+		    as (<!-- 앞서 도출된 메뉴 목록에 대해서 중복 제거 후 Hierarchy로 구조화한다. -->
+		        SELECT
+					<include refid="cmmtMenu-Columns"><property name="alias" value="cm"/></include>
+					  , case
+							when um.menu_id is null then false
+							else true
+						end as read_yn
+		              , 1 AS LEVEL
+		              , ARRAY['1'||LPAD(CAST(cm.sort_order AS TEXT), 3, '0')] AS PATH
+		              , false AS CYCLE
+		          FROM cmmt_menu cm
+ 				  left join (select distinct * from cmmt_menu_by_role) um
+ 				    on cm.system_id = um.system_id and cm.menu_id = um.menu_id
+		         WHERE cm.system_id = #{systemId}
+		           AND cm.parent_menu_id = 'ROOT'
+		         UNION ALL
+		        SELECT
+					<include refid="cmmtMenu-Columns"><property name="alias" value="cm2"/></include>
+					  , case
+							when um.menu_id is null then false
+							else true
+						end as read_yn
+		              , cm1.LEVEL + 1 AS LEVEL
+		              , cm1.PATH||CAST((cm1.LEVEL + 1) AS TEXT)||LPAD(CAST(cm2.sort_order AS TEXT), 3, '0') AS PATH
+		              , CAST((cm1.LEVEL + 1) AS TEXT)||LPAD(CAST(cm2.sort_order AS TEXT), 3, '0') = ANY(PATH) AS CYCLE
+		          FROM cmmt_menu_hierarchy cm1
+		          JOIN cmmt_menu cm2
+		            ON cm1.system_id = cm2.system_id
+		           AND cm2.parent_menu_id = cm1.menu_id
+		          left join (select distinct * from cmmt_menu_by_role) um
+ 				    on cm1.system_id = um.system_id and cm1.menu_id = um.menu_id
+		         WHERE cm1.system_id = #{systemId}
+		           AND NOT CYCLE
+		       )
+	</sql>
+
+	<select id="selectAll" resultType="aicluster.member.common.entity.CmmtMenu">
+		/** CmmtMenuDao.selectAll */
+		<include refid="cmmtMenu-hierarchy">
+			<property name="whereMenu" value="cm.parent_menu_id IS NULL" />
+		</include>
+		SELECT
+        	<include refid="cmmtMenu-Columns-level">
+        		<property name="decLevel" value="1"/>
+        	</include>
+		  FROM cmmt_menu_hierarchy
+		 ORDER BY PATH
+	</select>
+
+	<select id="select" resultType="aicluster.member.common.entity.CmmtMenu">
+		/** CmmtMenuDao.select */
+		select
+        	<include refid="cmmtMenu-Columns"><property name="alias" value="cm"/></include>
+		from cmmt_menu cm
+		where
+			system_id = #{systemId}
+			and menu_id = #{menuId}
+	</select>
+
+	<select id="selectLastChild" resultType="aicluster.member.common.entity.CmmtMenu">
+		/** CmmtMenuDao.selectLastChild */
+		select
+        	<include refid="cmmtMenu-Columns"><property name="alias" value="cm"/></include>
+		from cmmt_menu cm
+		where
+			system_id = #{systemId}
+			and parent_menu_id = #{menuId}
+			and sort_order = (select max(sort_order) from cmmt_menu where system_id = #{systemId} and parent_menu_id = #{menuId})
+	</select>
+
+	<select id="selectAboveMenu" resultType="aicluster.member.common.entity.CmmtMenu">
+		/** CmmtMenuDao.selectAboveMenu */
+		select
+        	<include refid="cmmtMenu-Columns"><property name="alias" value="a"/></include>
+		from cmmt_menu a
+		join (select * from cmmt_menu where system_id = #{systemId} and menu_id = #{menuId}) b
+				on (a.system_id = b.system_id and a.parent_menu_id = b.parent_menu_id)
+		where
+	<![CDATA[
+			a.sort_order = (select max(sort_order) from cmmt_menu where system_id  = b.system_id AND parent_menu_id = b.parent_menu_id AND sort_order < b.sort_order)
+	]]>
+	</select>
+
+	<select id="selectBelowMenu" resultType="aicluster.member.common.entity.CmmtMenu">
+		/** CmmtMenuDao.selectBelowMenu */
+		select
+        	<include refid="cmmtMenu-Columns"><property name="alias" value="a"/></include>
+		from cmmt_menu a
+		join (select * from cmmt_menu where system_id = #{systemId} and menu_id = #{menuId}) b
+				on (a.system_id = b.system_id and a.parent_menu_id = b.parent_menu_id)
+		where
+	<![CDATA[
+			a.sort_order = (select min(sort_order) from cmmt_menu where system_id  = b.system_id AND parent_menu_id = b.parent_menu_id AND sort_order > b.sort_order)
+	]]>
+	</select>
+
+	<select id="selectList_authorityId" resultType="aicluster.member.api.auth.dto.MyMenuDto">
+		/** CmmtMenuDao.selectList_authorityId */
+		<include refid="cmmtMenu-user-allMenu-hierarchy">
+			<property name="whereRole" value="role_id in ( select role_id from cmmt_authority_role where authority_id = #{authorityId} )" />
+		</include>
+		select
+			  menu_id
+			, menu_nm
+			, url
+			, new_window
+			, parent_menu_id
+			, sort_order
+			, read_yn
+		  FROM cmmt_menu_hierarchy
+		 ORDER BY PATH
+	</select>
+
+	<select id="selectList_roleId" resultType="aicluster.member.api.auth.dto.MyMenuDto">
+		/** CmmtMenuDao.selectList_roleId */
+		<include refid="cmmtMenu-user-allMenu-hierarchy">
+			<property name="whereRole" value="role_id = #{roleId}" />
+		</include>
+		select
+			  menu_id
+			, menu_nm
+			, url
+			, new_window
+			, parent_menu_id
+			, sort_order
+			, read_yn
+		  FROM cmmt_menu_hierarchy
+		 ORDER BY PATH
+	</select>
+
+	<select id="selectList_parentMenuId" resultType="aicluster.member.common.entity.CmmtMenu">
+		/** CmmtMenuDao.selectList_parentMenuId */
+		select
+        	<include refid="cmmtMenu-Columns"><property name="alias" value="cm"/></include>
+		from cmmt_menu cm
+		where
+			system_id = #{systemId}
+			and parent_menu_id = #{menuId}
+		order by
+			sort_order
+	</select>
+
+	<select id="selectAll_roleId" resultType="aicluster.member.common.dto.MenuEnabledDto">
+		/** CmmtMenuDao.selectAll_roleId */
+		<include refid="cmmtMenu-hierarchy">
+			<property name="whereMenu" value="cm.parent_menu_id IS NULL" />
+		</include>
+		SELECT
+        	<include refid="cmmtMenu-Columns-level">
+        		<property name="decLevel" value="1"/>
+        	</include>
+		        , case
+		            when (select menu_id from cmmt_menu_role where system_id = #{systemId} and menu_id = m.menu_id and role_id = #{roleId}) is null then false
+		            else true
+		        end as enabled
+		  FROM cmmt_menu_hierarchy m
+		 ORDER BY PATH
+	</select>
+
+	<select id="selectCount_menuIds" resultType="Integer">
+		/** CmmtMenuDao.selectCount_menuIds */
+		select
+			count(*) as cnt
+		from cmmt_menu
+		where
+			system_id = #{systemId}
+			and menu_id in (
+				<foreach item="item" index="index" collection="menuIdList" separator=",">
+					#{item}
+				</foreach>
+			)
+	</select>
+
+	<insert id="insert">
+		/** CmmtMenuDao.insert */
+		insert into cmmt_menu (
+			system_id
+			,menu_id
+			,menu_nm
+			,url
+			,new_window
+			,parent_menu_id
+			,sort_order
+			,remark
+			,creator_id
+			,created_dt
+			,updater_id
+			,updated_dt
+		) values (
+			#{systemId}
+			,#{menuId}
+			,#{menuNm}
+			,#{url}
+			,#{newWindow}
+			,#{parentMenuId}
+			,#{sortOrder}
+			,#{remark}
+			,#{creatorId}
+			,#{createdDt}
+			,#{updaterId}
+			,#{updatedDt}
+		)
+	</insert>
+
+	<update id="incSortOrder">
+		/** CmmtMenuDao.incSortOrder */
+		update cmmt_menu set
+			sort_order = sort_order + 1
+		where
+			system_id = #{systemId}
+			and parent_menu_id = (SELECT parent_menu_id from cmmt_menu where menu_id = #{menuId})
+			and sort_order >= #{sortOrder}
+	</update>
+
+	<update id="decSortOrder">
+		/** CmmtMenuDao.decSortOrder */
+		update cmmt_menu set
+			sort_order = sort_order - 1
+		where
+			system_id = #{systemId}
+			and parent_menu_id = (SELECT parent_menu_id from cmmt_menu where menu_id = #{menuId})
+			and sort_order >= #{sortOrder}
+	</update>
+
+	<update id="update">
+		/** CmmtMenuDao.update */
+		update cmmt_menu set
+			menu_nm         = #{menuNm}
+			,url            = #{url}
+			,new_window     = #{newWindow}
+			,parent_menu_id = #{parentMenuId}
+			,sort_order     = #{sortOrder}
+			,remark         = #{remark}
+			,updater_id     = #{updaterId}
+			,updated_dt     = #{updatedDt}
+		where
+			system_id = #{systemId}
+			and menu_id = #{menuId}
+	</update>
+
+	<delete id="delete">
+		/** CmmtMenuDao.delete */
+		delete from cmmt_menu
+		where
+			system_id = #{systemId}
+			and menu_id = #{menuId}
+	</delete>
+
+	<select id="selectChildAll" resultType="aicluster.member.common.entity.CmmtMenu">
+		/** CmmtMenuDao.selectChildAll */
+		<include refid="cmmtMenu-hierarchy">
+			<property name="whereMenu" value="cm.menu_id = #{menuId}" />
+		</include>
+		SELECT
+        	<include refid="cmmtMenu-Columns-level">
+        		<property name="decLevel" value="2"/>
+        	</include>
+		  FROM cmmt_menu_hierarchy
+		 WHERE menu_id != #{menuId}
+		 ORDER BY PATH
+	</select>
+
+	<select id="selectParentByChildId" resultType="aicluster.member.common.entity.CmmtMenu">
+		/** CmmtMenuDao.selectParentForChild */
+		<include refid="cmmtMenu-reverseHierarchy"/>
+		SELECT  system_id
+		        , menu_id
+		        , lpad(' ', ((SELECT MAX(LEVEL) AS max_lvl FROM cmmt_menu_reverse_hierarchy) - LEVEL))||menu_nm AS menu_nm
+		        , url
+		        , new_window
+		        , parent_menu_id
+		        , sort_order
+		        , remark
+		        , creator_id
+		        , created_dt
+		        , updater_id
+		        , updated_dt
+		  FROM cmmt_menu_reverse_hierarchy
+		 ORDER BY PATH DESC
+	</select>
+</mapper>

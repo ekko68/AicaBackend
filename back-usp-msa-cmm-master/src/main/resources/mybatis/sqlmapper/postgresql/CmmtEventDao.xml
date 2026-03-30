@@ -1,0 +1,297 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aicluster.common.common.dao.CmmtEventDao">
+
+	<sql id="cmmtEvent_cols">
+		 event_id
+		,event_nm
+		,posting
+		,begin_day
+		,end_day
+		,pc_thumbnail_file_id
+		,mobile_thumbnail_file_id
+		,thumbnail_alt_cn
+		,pc_image_file_id
+		,mobile_image_file_id
+		,image_alt_cn
+		,url
+		,new_window
+		,attachment_group_id
+		,read_cnt
+		,creator_id
+		,created_dt
+		,updater_id
+		,updated_dt
+	</sql>
+
+	<sql id="selectList_where">
+		1=1
+		<if test='param.posting != null'>
+			and posting = #{param.posting}
+		</if>
+		<if test='param.eventNm != null and param.eventNm != ""'>
+			and event_nm like '%' || #{param.eventNm} || '%'
+		</if>
+	</sql>
+
+	<sql id="selectListPosting_where">
+		and posting = true
+		<if test='param.beginDay != null and param.endDay != null ' >
+		<![CDATA[
+		and (
+	       to_date(begin_day, 'YYYYMMDD') between to_date(#{param.beginDay}, 'YYYYMMDD') and to_date(#{param.endDay}, 'YYYYMMDD')
+	    or to_date(end_day, 'YYYYMMDD') between to_date(#{param.beginDay}, 'YYYYMMDD') and to_date(#{param.endDay}, 'YYYYMMDD')
+	    or (to_date(begin_day, 'YYYYMMDD') < to_date(#{param.beginDay}, 'YYYYMMDD') and to_date(end_day, 'YYYYMMDD') > to_date(#{param.endDay}, 'YYYYMMDD'))
+	    )
+		]]>
+		</if>
+		<if test='param.searchCn != null and param.searchCn != ""'>
+			<choose>
+				<when test='param.searchType == "TITLE"'>
+			and event_nm like '%'||#{param.searchCn}||'%'
+				</when>
+				<when test='param.searchType == "CONTENTS"'>
+			and event_id in (
+							select event_id
+							from cmmt_event_cn
+							where article_cn like '%'||#{param.searchCn}||'%'
+			                )
+				</when>
+				<otherwise>
+			and (
+				event_nm like '%'||#{param.searchCn}||'%'
+				or event_id in (
+							select event_id
+							from cmmt_event_cn
+							where article_cn like '%'||#{param.searchCn}||'%'
+					)
+			)
+				</otherwise>
+			</choose>
+		</if>
+	</sql>
+
+	<select id="selectList_count" resultType="Long">
+		/** CmmtEventDao.selectList_count */
+		select
+			count(*) as cnt
+		from
+			cmmt_event
+		where
+			<include refid="selectList_where"/>
+	</select>
+
+	<select id="selectList" resultType="aicluster.common.common.entity.CmmtEvent">
+		/** CmmtEventDao.selectList */
+		select
+			<include refid="cmmtEvent_cols"/>,
+			#{totalItems} + 1 - (row_number() over(order by created_dt desc)) as rn
+		from
+			cmmt_event
+		where
+			<include refid="selectList_where"/>
+		order by
+			created_dt desc
+			<!-- begin_day desc -->
+		offset
+			#{beginRowNum} - 1
+		limit
+			#{itemsPerPage}
+	</select>
+
+	<insert id="insert">
+		/** CmmtEventDao.insert */
+		insert into cmmt_event (
+			<include refid="cmmtEvent_cols"/>
+		) values (
+			 #{eventId}
+			,#{eventNm}
+			,#{posting}
+			,#{beginDay}
+			,#{endDay}
+			,#{pcThumbnailFileId}
+			,#{mobileThumbnailFileId}
+			,#{thumbnailAltCn}
+			,#{pcImageFileId}
+			,#{mobileImageFileId}
+			,#{imageAltCn}
+			,#{url}
+			,#{newWindow}
+			,#{attachmentGroupId}
+			,#{readCnt}
+			,#{creatorId}
+			,#{createdDt}
+			,#{updaterId}
+			,#{updatedDt}
+		)
+	</insert>
+
+	<select id="select" resultType="aicluster.common.common.entity.CmmtEvent">
+		/** CmmtEventDao.select */
+		select
+			<include refid="cmmtEvent_cols"/>
+		from cmmt_event
+		where
+			event_id = #{eventId}
+	</select>
+
+	<update id="update">
+		/** CmmtEventDao.update */
+		update cmmt_event set
+			 event_id				  = #{eventId}
+			,event_nm                 = #{eventNm}
+			,posting                  = #{posting}
+			,begin_day                = #{beginDay}
+			,end_day                  = #{endDay}
+			,pc_thumbnail_file_id     = #{pcThumbnailFileId}
+			,mobile_thumbnail_file_id = #{mobileThumbnailFileId}
+			,thumbnail_alt_cn		  = #{thumbnailAltCn}
+			,pc_image_file_id         = #{pcImageFileId}
+			,mobile_image_file_id     = #{mobileImageFileId}
+			,image_alt_cn			  = #{imageAltCn}
+			,url                      = #{url}
+			,new_window               = #{newWindow}
+			,attachment_group_id      = #{attachmentGroupId}
+			,read_cnt				  = #{readCnt}
+			,creator_id               = #{creatorId}
+			,created_dt               = #{createdDt}
+			,updater_id               = #{updaterId}
+			,updated_dt               = #{updatedDt}
+		where
+			event_id = #{eventId}
+	</update>
+
+	<insert id="delete">
+		/** CmmtEventDao.delete */
+		delete from
+			cmmt_event
+		where
+			event_id = #{eventId}
+	</insert>
+
+	<select id="selectList_today" resultType="aicluster.common.common.entity.CmmtEvent">
+		/** CmmtEventDao.selectList_today */
+		select
+			<include refid="cmmtEvent_cols"/>
+		from cmmt_event
+		where
+			posting = true
+			and (
+			<![CDATA[
+				begin_day <= to_char(now(), 'yyyymmdd')
+				and end_day >= to_char(now(), 'yyyymmdd')
+			]]>
+			)
+	</select>
+
+	<select id="selectList_time" resultType="aicluster.common.common.entity.CmmtEvent">
+		/** CmmtEventDao.selectList_time */
+		select
+			 event_id
+			,event_nm
+			,begin_day
+			,end_day
+			,pc_thumbnail_file_id
+			,mobile_thumbnail_file_id
+			,thumbnail_alt_cn
+			,url
+			,new_window
+			,read_cnt
+			,creator_id
+			,created_dt
+			,updater_id
+			,updated_dt
+			,row_number() over(order by begin_day, created_dt) as rn
+		from cmmt_event
+		where
+			posting = true
+		<!-- and now() between to_date(begin_day, 'YYYYMMDD') and to_date(end_day, 'YYYYMMDD') -->
+		<![CDATA[
+		and begin_day <= to_char(now(), 'yyyymmdd')
+		and end_day >= to_char(now(), 'yyyymmdd')
+		]]>
+		order by
+			 begin_day
+			,created_dt
+		offset
+			0
+		limit
+			#{searchCnt}
+
+	</select>
+
+	<select id="selectList_posting_count" resultType="Long">
+		/** CmmtEventDao.selectList_posting_count */
+		select
+			 count(*) as cnt
+		from cmmt_event
+		where
+		1=1
+		<include refid="selectListPosting_where"/>
+	</select>
+
+	<select id="selectList_posting" resultType="aicluster.common.common.entity.CmmtEvent">
+		/** CmmtEventDao.selectList_posting */
+		select
+			event_id
+			,event_nm
+			,begin_day
+			,end_day
+			,pc_thumbnail_file_id
+			,mobile_thumbnail_file_id
+			,thumbnail_alt_cn
+			,url
+			,new_window
+			,attachment_group_id
+			,read_cnt
+			,creator_id
+			,created_dt
+			,updater_id
+			,updated_dt
+			,#{totalItems} + 1 - (row_number() over(order by ${param.sortType} desc)) as rn
+		from cmmt_event
+		where
+			1=1
+		<include refid="selectListPosting_where"/>
+		order by
+			${param.sortType} desc
+		offset
+			#{beginRowNum} - 1
+		limit
+			#{itemsPerPage}
+
+	</select>
+
+	<select id="selectPrevNext" resultType="aicluster.common.common.dto.EventPrevNextItem">
+		/** CmmtEventDao.selectPrevNext */
+		select
+			 y.event_id
+			,y.event_nm
+			,y.prev_event_id
+			,y.prev_event_nm
+			,y.next_event_id
+			,y.next_event_nm
+		from (
+			select
+				 x.*
+				,lead(x.event_id) over w as prev_event_id
+				,lead(x.event_nm) over w as prev_event_nm
+				,lag(x.event_id) over w as next_event_id
+				,lag(x.event_nm) over w as next_event_nm
+			from (
+				select
+					 event_id
+					,event_nm
+					,${param.sortType}
+					,'EVENT' as grouping_key
+				from cmmt_event
+				where
+					1=1
+					<include refid="selectListPosting_where"/>
+				) x
+			window w as (partition by x.grouping_key order by ${param.sortType} desc)
+			) y
+		where
+			y.event_id = #{eventId}
+	</select>
+</mapper>

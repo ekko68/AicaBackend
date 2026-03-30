@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aicluster.common.common.dao.CmmtSurveyDao">
+
+	<sql id="cmmtSurvey_cols">
+		 survey_id
+		,survey_nm
+		,system_id
+		,begin_day
+		,end_day
+		,remark
+		,enabled
+		,duplicated
+		,creator_id
+		,created_dt
+		,updater_id
+		,updated_dt
+	</sql>
+
+	<insert id="insert">
+		/** CmmtSurveyDao.insert */
+		insert into cmmt_survey (
+			 survey_id
+			,survey_nm
+			,system_id
+			,begin_day
+			,end_day
+			,remark
+			,enabled
+			,duplicated
+			,creator_id
+			,created_dt
+			,updater_id
+			,updated_dt
+		) values (
+			 #{surveyId}
+			,#{surveyNm}
+			,#{systemId}
+			,#{beginDay}
+			,#{endDay}
+			,#{remark}
+			,#{enabled}
+			,#{duplicated}
+			,#{creatorId}
+			,#{createdDt}
+			,#{updaterId}
+			,#{updatedDt}
+		)
+	</insert>
+
+	<select id="select" resultType="aicluster.common.common.entity.CmmtSurvey">
+		/** CmmtSurveyDao.select */
+		select
+			<include refid="cmmtSurvey_cols"/>
+		from
+			cmmt_survey
+		where
+			survey_id = #{surveyId}
+	</select>
+
+	<sql id="where-selectList">
+		1=1
+		<if test="param.systemId != null and param.systemId != ''">
+			and system_id = #{param.systemId}
+		</if>
+		<![CDATA[
+			AND (
+				begin_day between #{param.beginDay} and #{param.endDay}
+				or end_day between #{param.beginDay} and #{param.endDay}
+				or (
+					begin_day < #{param.beginDay}
+					and end_day > #{param.beginDay}
+				)
+			)
+		]]>
+		<if test='param.surveySt != null and param.surveySt.equals("WAIT")'>
+		<![CDATA[
+			and (
+				enabled = false
+				or begin_day > to_char(now(), 'yyyymmdd')
+			)
+		]]>
+		</if>
+		<if test='param.surveySt != null and param.surveySt.equals("ING")'>
+		<![CDATA[
+			and (
+				enabled = true
+				and to_char(now(), 'yyyymmdd') between begin_day and end_day
+			)
+		]]>
+		</if>
+		<if test='param.surveySt != null and param.surveySt.equals("END")'>
+		<![CDATA[
+			and (
+				end_day < to_char(now(), 'yyyymmdd')
+			)
+		]]>
+		</if>
+		<if test='param.surveyNm != null and param.surveyNm != ""'>
+			and survey_nm like '%' || #{param.surveyNm} || '%'
+		</if>
+	</sql>
+
+	<select id="selectList_count" resultType="Long">
+		/** CmmtSurveyDao.selectList_count */
+		select
+			count(*) as cnt
+		from
+			cmmt_survey
+		where
+			<include refid="where-selectList" />
+	</select>
+
+	<select id="selectList" resultType="aicluster.common.common.entity.CmmtSurvey">
+		/** CmmtSurveyDao.selectList */
+		select
+			<include refid="cmmtSurvey_cols" />,
+			#{totalItems} + 1 - (row_number() over (order by begin_day desc)) as rn
+		from
+			cmmt_survey
+		where
+			<include refid="where-selectList" />
+		offset
+			#{beginRowNum} -1
+		limit
+			#{itemsPerPage}
+	</select>
+
+	<delete id="delete">
+		/** CmmtSurveyDao.delete */
+		delete from
+			cmmt_survey
+		where
+			survey_id = #{surveyId}
+	</delete>
+
+	<update id="update">
+		/** CmmtSurveyDao.update */
+		update cmmt_survey set
+			 survey_nm  = #{surveyNm}
+			,system_id  = #{systemId}
+			,begin_day  = #{beginDay}
+			,end_day    = #{endDay}
+			,remark     = #{remark}
+			,enabled    = #{enabled}
+			,duplicated = #{duplicated}
+			,creator_id = #{creatorId}
+			,created_dt = #{createdDt}
+			,updater_id = #{updaterId}
+			,updated_dt = #{updatedDt}
+		where
+			survey_id = #{surveyId}
+	</update>
+</mapper>

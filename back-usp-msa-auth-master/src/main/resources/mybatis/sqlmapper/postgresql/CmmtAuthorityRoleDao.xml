@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aicluster.member.common.dao.CmmtAuthorityRoleDao">
+
+	<select id="selectList" resultType="aicluster.member.common.entity.CmmtAuthorityRole">
+		/** CmmtAuthorityRoleDao.selectList */
+		select
+			authority_id
+			,role_id
+			,creator_id
+			,created_dt
+		from
+			cmmt_authority_role
+		where
+			authority_id = #{authorityId}
+	</select>
+
+	<insert id="insert">
+		/** CmmtAuthorityRoleDao.insert */
+		insert into cmmt_authority_role (
+			authority_id
+			,role_id
+			,creator_id
+			,created_dt
+		) values (
+			#{authorityId}
+			,#{roleId}
+			,#{creatorId}
+			,#{createdDt}
+		)
+	</insert>
+
+	<insert id="insertList">
+		/** CmmtAuthorityRoleDao.insertList */
+		insert into cmmt_authority_role (
+			authority_id
+			,role_id
+			,creator_id
+			,created_dt
+		) values
+		<foreach item="item" index="index" collection="list" separator=",">
+			(
+				#{item.authorityId}
+				,#{item.roleId}
+				,#{item.creatorId}
+				,#{item.createdDt}
+			)
+		</foreach>
+	</insert>
+
+	<select id="selectByRoleId" resultType="aicluster.member.common.entity.CmmtAuthorityRole">
+		/** CmmtAuthorityRoleDao.selectByRoleId */
+		select
+			authority_id
+			,role_id
+			,creator_id
+			,created_dt
+		from
+			cmmt_authority_role
+		where
+			role_id = #{roleId}
+	</select>
+
+	<delete id="deleteAuthorityId">
+		/** CmmtAuthorityRoleDao.deleteAuthorityId */
+		delete from
+			cmmt_authority_role
+		where
+			authority_id = #{authorityId}
+	</delete>
+</mapper>

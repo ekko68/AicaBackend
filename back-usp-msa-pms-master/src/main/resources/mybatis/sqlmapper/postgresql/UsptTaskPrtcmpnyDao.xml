@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aicluster.pms.common.dao.UsptTaskPrtcmpnyDao">
+
+	<update id="updateRecentSendDate">
+		/** UsptTaskPrtcmpnyDao.updateRecentSendDate */
+		update uspt_task_prtcmpny
+		set
+			recent_send_date = #{updatedDt}
+		where
+			task_partcptn_entrprs_id = #{taskPartcptnEntrprsId}
+	</update>
+
+	<!-- 참여기업 조회 -->
+	<select id="selectList" resultType="aicluster.pms.common.entity.UsptTaskPrtcmpny">
+			/** UsptTaskPrtcmpnyDao.selectList */
+			select	 task_partcptn_entrprs_id
+					,bsns_plan_doc_id
+					,entrps_nm
+					,rspnber_nm
+					,clsf_nm
+					,enc_telno
+					,enc_mbtlnum
+					,enc_email
+					,tlsy_regist_no
+					,member_id
+					, (select member_nm from cmmt_member cm  where cm.member_id = utp.member_id)		as member_nm
+					,creator_id
+					,created_dt
+					,updater_id
+					,updated_dt
+		   from uspt_task_prtcmpny utp
+		 where 1=1
+			and bsns_plan_doc_id = #{bsnsPlanDocId}
+	</select>
+
+	<!-- 참여기업 조회 목록만 조회-->
+	<select id="selectBoxList" resultType="aicluster.pms.common.entity.UsptTaskPrtcmpny">
+			/** UsptTaskPrtcmpnyDao.selectBoxList */
+			select	 member_id
+					,entrps_nm
+		   from uspt_task_prtcmpny
+		 where 1=1
+			and bsns_plan_doc_id = #{bsnsPlanDocId}
+	</select>
+
+	<insert id="insert">
+		/** UsptTaskPrtcmpnyDao.insert */
+			insert into uspt_task_prtcmpny (
+							 task_partcptn_entrprs_id
+							,bsns_plan_doc_id
+							,entrps_nm
+							,rspnber_nm
+							,clsf_nm
+							,enc_telno
+							,enc_mbtlnum
+							,enc_email
+							,tlsy_regist_no
+							,member_id
+							,creator_id
+							,created_dt
+							,updater_id
+							,updated_dt
+					) values (
+						 #{taskPartcptnEntrprsId}
+						,#{bsnsPlanDocId}
+						,#{entrpsNm}
+						,#{rspnberNm}
+						,#{clsfNm}
+						,#{encTelno}
+						,#{encMbtlnum}
+						,#{encEmail}
+						,#{tlsyRegistNo}
+						,#{memberId}
+						,#{creatorId}
+						,#{createdDt}
+						,#{updaterId}
+						,#{updatedDt}
+					)
+	</insert>
+
+	<update id="update">
+	/** UsptTaskPrtcmpnyDao.update */
+	update uspt_task_prtcmpny
+		 set    entrps_nm                 = #{entrpsNm}
+				,rspnber_nm                = #{rspnberNm}
+				,clsf_nm                   = #{clsfNm}
+				,enc_telno                 = #{encTelno}
+				,enc_mbtlnum               = #{encMbtlnum}
+				,enc_email                 = #{encEmail}
+				,tlsy_regist_no            = #{tlsyRegistNo}
+				,member_id					=#{memberId}
+				,updater_id                = #{updaterId}
+				,updated_dt                = #{updatedDt}
+	where  task_partcptn_entrprs_id  = #{taskPartcptnEntrprsId}
+	  and	  bsns_plan_doc_id          = #{bsnsPlanDocId}
+	</update>
+
+	<delete id="delete">
+	/** UsptTaskPrtcmpnyDao.delete */
+		delete from uspt_task_prtcmpny
+				where task_partcptn_entrprs_id = #{taskPartcptnEntrprsId}
+				  and	 bsns_plan_doc_id          = #{bsnsPlanDocId}
+	</delete>
+
+	<delete id="deleteBsnsPlanDocIdAll">
+	/** UsptTaskPrtcmpnyDao.deleteBsnsPlanDocIdAll */
+		delete from uspt_task_prtcmpny
+				where bsns_plan_doc_id =  #{bsnsPlanDocId}
+	</delete>
+
+	<!--협약변경관리 변경요청 업체명 조회 -->
+	<select id="selectCnvnChangeEntrpsNm" resultType="aicluster.pms.common.entity.UsptTaskPrtcmpny">
+		/** UsptTaskPrtcmpnyDao.selectCnvnChangeEntrpsNm */
+	   				select	 rspnber_nm
+	   				       , member_id
+					from uspt_task_prtcmpny
+				     and  bsns_plan_doc_id          = #{bsnsPlanDocId}
+	</select>
+
+</mapper>

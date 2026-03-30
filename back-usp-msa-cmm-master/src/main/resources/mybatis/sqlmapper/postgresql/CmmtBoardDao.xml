@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aicluster.common.common.dao.CmmtBoardDao">
+
+	<sql id="cmmtBoard_cols">
+		board_id
+		,system_id
+		,board_nm
+		,article_cnt
+		,enabled
+		,web_editor
+		,notice_available
+		,commentable
+		,category
+		,category_code_group
+		,attachable
+		,attachment_size
+		,attachment_ext
+		,use_shared_url
+		,use_thumbnail
+		,use_form
+		,all_readable
+		,creator_id
+		,created_dt
+		,updater_id
+		,updated_dt
+	</sql>
+
+	<!-- 사용 -->
+	<select id="selectList" resultType="aicluster.common.common.entity.CmmtBoard">
+		/** CmmtBoardDao.selectList */
+		select
+			<include refid="cmmtBoard_cols" />
+		from
+			cmmt_board
+		where
+			1=1
+			<if test='systemId != null and systemId != ""'>
+			and system_id = #{systemId}
+			</if>
+			<if test="enabled != null">
+				and enabled = #{enabled}
+			</if>
+			<if test='boardId != null and boardId != ""'>
+				and board_id = #{boardId}
+			</if>
+			<if test='boardNm != null and boardNm != ""'>
+				and board_nm like '%' || #{boardNm} || '%'
+			</if>
+	</select>
+
+	<select id="select" resultType="aicluster.common.common.entity.CmmtBoard">
+		/** CmmtBoardDao.select */
+		select
+			<include refid="cmmtBoard_cols" />
+		from
+			cmmt_board
+		where
+			board_id = #{boardId}
+	</select>
+
+	<insert id="insert">
+		/** CmmtBoardDao.insert */
+		insert into cmmt_board (
+			board_id
+			,system_id
+			,board_nm
+			,article_cnt
+			,enabled
+			,web_editor
+			,notice_available
+			,commentable
+			,category
+			,category_code_group
+			,attachable
+			,attachment_size
+			,attachment_ext
+			,use_shared_url
+			,use_thumbnail
+			,use_form
+			,all_readable
+			,creator_id
+			,created_dt
+			,updater_id
+			,updated_dt
+		) values (
+			 #{boardId}
+			,#{systemId}
+			,#{boardNm}
+			,#{articleCnt}
+			,#{enabled}
+			,#{webEditor}
+			,#{noticeAvailable}
+			,#{commentable}
+			,#{category}
+			,#{categoryCodeGroup}
+			,#{attachable}
+			,#{attachmentSize}
+			,#{attachmentExt}
+			,#{useSharedUrl}
+			,#{useThumbnail}
+			,#{useForm}
+			,#{allReadable}
+			,#{creatorId}
+			,#{createdDt}
+			,#{updaterId}
+			,#{updatedDt}
+		)
+	</insert>
+
+	<update id="update">
+		/** CmmtBoardDao.update */
+		update cmmt_board set
+			 board_id            = #{boardId}
+			,system_id           = #{systemId}
+			,board_nm            = #{boardNm}
+			,article_cnt         = #{articleCnt}
+			,enabled             = #{enabled}
+			,web_editor          = #{webEditor}
+			,notice_available    = #{noticeAvailable}
+			,commentable         = #{commentable}
+			,category            = #{category}
+			,category_code_group = #{categoryCodeGroup}
+			,attachable          = #{attachable}
+			,attachment_size     = #{attachmentSize}
+			,attachment_ext      = #{attachmentExt}
+			,use_shared_url      = #{useSharedUrl}
+			,use_thumbnail       = #{useThumbnail}
+			,use_form            = #{useForm}
+			,all_readable        = #{allReadable}
+			,creator_id          = #{creatorId}
+			,created_dt          = #{createdDt}
+			,updater_id          = #{updaterId}
+			,updated_dt          = #{updatedDt}
+		where
+			board_id = #{boardId}
+	</update>
+
+	<delete id="delete">
+		/** CmmtBoardDao.delete */
+		delete from
+			cmmt_board
+		where
+			board_id = #{boardId}
+	</delete>
+
+	<update id="updateArticleCnt">
+		/** CmmtBoardDao.updateArticleCnt */
+		update cmmt_board set
+			article_cnt = (select count(*) from cmmt_board_article where board_id = #{boardId})
+		where
+			board_id = #{boardId}
+	</update>
+</mapper>

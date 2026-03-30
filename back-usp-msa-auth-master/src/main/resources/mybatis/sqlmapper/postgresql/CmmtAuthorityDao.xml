@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aicluster.member.common.dao.CmmtAuthorityDao">
+
+	<sql id="cmmtAuthority_cols">
+		authority_id
+		,authority_nm
+		,purpose
+		,creator_id
+		,created_dt
+		,updater_id
+		,updated_dt
+		,(select string_agg(role_id, ',') from cmmt_authority_role where authority_id = a.authority_id) as role_ids
+	</sql>
+
+	<select id="selectAll" resultType="aicluster.member.common.entity.CmmtAuthority">
+		/** CmmtAuthorityDao.selectAll */
+		select
+			<include refid="cmmtAuthority_cols"/>
+		from
+			cmmt_authority a
+	</select>
+
+	<select id="select" resultType="aicluster.member.common.entity.CmmtAuthority">
+		/** CmmtAuthorityDao.select */
+		select
+			<include refid="cmmtAuthority_cols"/>
+		from
+			cmmt_authority a
+		where
+			authority_id = #{authorityId}
+	</select>
+
+	<select id="selectByName" resultType="aicluster.member.common.entity.CmmtAuthority">
+		/** CmmtAuthorityDao.selectByName */
+		select
+			<include refid="cmmtAuthority_cols"/>
+		from
+			cmmt_authority a
+		where
+			authority_nm = #{authorityNm}
+	</select>
+
+	<insert id="insert">
+		/** CmmtAuthorityDao.insert */
+		insert into cmmt_authority (
+			authority_id
+			,authority_nm
+			,purpose
+			,creator_id
+			,created_dt
+			,updater_id
+			,updated_dt
+		) values (
+			#{authorityId}
+			,#{authorityNm}
+			,#{purpose}
+			,#{creatorId}
+			,#{createdDt}
+			,#{updaterId}
+			,#{updatedDt}
+		)
+	</insert>
+
+	<update id="update">
+		/** CmmtAuthorityDao.update */
+		update cmmt_authority set
+			authority_nm = #{authorityNm}
+			,purpose = #{purpose}
+			,creator_id  = #{creatorId}
+			,created_dt  = #{createdDt}
+			,updater_id  = #{updaterId}
+			,updated_dt  = #{updatedDt}
+		where
+			authority_id = #{authorityId}
+	</update>
+
+	<delete id="delete">
+		/** CmmtAuthorityDao.delete */
+		delete from
+			cmmt_authority
+		where
+			authority_id = #{authorityId}
+	</delete>
+
+	<select id="selectByRoleId" resultType="aicluster.member.common.entity.CmmtAuthorityRole">
+		/** CmmtAuthorityDao.selectByRoleId */
+        SELECT b.authority_id
+             , b.role_id
+             , b.creator_id
+             , b.created_dt
+          FROM cmmt_authority a
+          JOIN cmmt_authority_role b
+            ON a.authority_id = b.authority_id
+         WHERE b.role_id = #{roldId}
+	</select>
+</mapper>

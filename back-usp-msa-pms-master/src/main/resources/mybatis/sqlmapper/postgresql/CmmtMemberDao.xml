@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aicluster.pms.common.dao.CmmtMemberDao">
+
+	<sql id="cmmtMember_columns">
+		member_id
+		,login_id
+		,enc_passwd
+		,passwd_dt
+		,passwd_init
+		,member_nm
+		,nickname
+		,gender
+		,authority_id
+		,fn_cmm_get_authority_nm(authority_id) as authority_nm
+		,member_st
+		,fn_cmm_get_code_nm('MEMBER_ST', member_st) as member_st_nm
+		,member_st_dt
+		,member_type
+		,black_list_begin_day
+		,black_list_end_day
+		,black_list_reason
+		,fn_cmm_get_code_nm('${@aicluster.pms.common.util.Code@MBR_CODE_GROUP}', member_type) as member_type_nm
+		,ci
+		,enc_email
+		,enc_birthday
+		,enc_mobile_no
+		,bizrno
+		,refresh_token
+		,kakao_token
+		,naver_token
+		,google_token
+		,last_login_dt
+		,creator_id
+		,created_dt
+		,updater_id
+		,updated_dt
+	</sql>
+
+	<select id="select" resultType="aicluster.pms.common.entity.CmmtMember">
+		/** CmmtMemberDao.select */
+		select
+			<include refid="cmmtMember_columns" />
+		from cmmt_member
+		where
+			member_id = #{memberId}
+	</select>
+
+
+	<select id="selectEntrprsSttusList" resultType="aicluster.pms.common.dto.EntrprsSttusListDto">
+		/** CmmtMemberDao.selectEntrprsSttusList */
+		select
+			cc.code_nm				as member_type_nm
+			, count(cm.member_id)	as tot_cnt
+			, count(sub.apply_id)	as last_slctn_cnt
+			, sum(case when (to_char(now(), 'yyyymmdd') between sub.bsns_bgnde and sub.bsns_endde)  then 1  else 0 end)	as bsns_ing
+			, sum(case when (to_char(now(), 'yyyymmdd') > sub.bsns_endde)  then 1 else 0 end)							as bsns_end
+		from cmmt_code cc
+			inner join cmmt_member cm
+				on cm.member_type = cc.code
+			left outer join (
+				select
+					ubpa.apply_id
+					, ubpa.member_id
+					, ubp.bsns_bgnde
+					, ubp.bsns_endde
+				from uspt_bsns_pblanc_applcnt ubpa
+					inner join uspt_bsns_pblanc ubp
+						on ubp.pblanc_id = ubpa.pblanc_id
+					inner join uspt_bsns ub
+						on ub.bsns_cd = ubp.bsns_cd
+				where
+					ubpa.rcept_sttus_cd = '${@aicluster.pms.common.util.Code@RS_COMPT_CODE}'
+					and ubpa.slctn = true
+					and ub.bsns_year = #{bsnsYear}
+			) sub
+			on sub.member_id = cm.member_id
+		where
+			cc.code_type = '${@aicluster.pms.common.util.Code@MBR_CODE_TYPE}'
+			and cc.code_group = '${@aicluster.pms.common.util.Code@MBR_CODE_GROUP}'
+			and cc.code != 'INDIVIDUAL'
+		group by cc.code_nm, cc.sort_order
+		order by cc.sort_order
+	</select>
+
+	<select id="selectBsnsPortSttusList" resultType="aicluster.pms.common.dto.BsnsPortListDto">
+		/** CmmtMemberDao.selectBsnsPortSttusList */
+		select
+			cc.code_nm									as member_type_nm
+			, count(sub.apply_id)						as task_cnt
+			, sum(coalesce(sub.excut_sbsidy, 0))		as excut_sbsidy
+			, sum(coalesce(sub.excut_bsnm_alotm, 0))	as excut_bsnm_alotm
+			, sum(coalesce(sub.excut_cnvn_totamt , 0))	as excut_cnvn_totamt
+		from cmmt_code cc
+			inner join cmmt_member cm
+				on cm.member_type = cc.code
+			left outer join (
+				select ubpa.apply_id
+						, ubpa.member_id
+						, ube.excut_sbsidy
+						, ube.excut_bsnm_alotm
+						, ube.excut_cnvn_totamt
+				from uspt_bsns_pblanc_applcnt ubpa
+					inner join uspt_bsns_pblanc_rcept ubpr
+						on ubpr.pblanc_id = ubpa.pblanc_id
+						and ubpr.rcept_odr = ubpa.rcept_odr
+					inner join uspt_bsns_pblanc ubp
+						on ubp.pblanc_id = ubpr.pblanc_id
+					inner join uspt_bsns ub
+						on ub.bsns_cd = ubp.bsns_cd
+					inner join uspt_evl_plan uep
+						on uep.pblanc_id = ubpr.pblanc_id
+						and uep.rcept_odr = ubpr.rcept_odr
+					inner join uspt_evl_last_slctn uels
+						on uels.evl_plan_id = uep.evl_plan_id
+					inner join uspt_last_slctn_trget ulst
+						on ulst.evl_last_slctn_id = uels.evl_last_slctn_id
+						and ulst.apply_id = ubpa.apply_id
+					inner join uspt_bsns_slctn ubs
+						on ubs.last_slctn_trget_id = ulst.last_slctn_trget_id
+					inner join uspt_bsns_plan_doc ubpd
+						on ubpd.bsns_slctn_id = ubs.bsns_slctn_id
+					inner join uspt_bsns_cnvn ubc
+						on ubc.bsns_plan_doc_id = ubpd.bsns_plan_doc_id
+						and ubc.cnvn_sttus_cd = '${@aicluster.pms.common.util.Code@CNVN_STTS_CMP}'
+					inner join uspt_bsns_excclc ube
+						on ube.bsns_cnvn_id = ubc.bsns_cnvn_id
+				where
+					ubpa.rcept_sttus_cd = '${@aicluster.pms.common.util.Code@RS_COMPT_CODE}'
+					and ubpa.slctn = true
+					and ub.bsns_year = #{bsnsYear}
+			) sub
+			on sub.member_id = cm.member_id
+		where
+			cc.code_type = '${@aicluster.pms.common.util.Code@MBR_CODE_TYPE}'
+			and cc.code_group = '${@aicluster.pms.common.util.Code@MBR_CODE_GROUP}'
+		group by cc.code_nm, cc.sort_order
+		order by cc.sort_order
+	</select>
+
+	<!-- 기업검색 팝업 총건수 -->
+	<select id="selectBizListTotCnt" resultType="Long">
+		 /** CmmtMemberDao.selectBizListTotCnt */
+			select count(1)
+			from cmmt_member
+		  where member_type in ('SOLE', 'CORPORATION' , 'UNIVERSITY')	/*개인사업자,법인사업자,대학회원*/
+		     and member_st = 'NORMAL'  													/*회원상탱-정상*/
+		     and  member_nm like concat('%', #{memberNm}, '%')
+	</select>
+	<!-- 기업검색 팝업 목록 -->
+	<select id="selectBizList" resultType="aicluster.pms.common.dto.CmmtMemberBizDto">
+		 /** CmmtMemberDao.selectBizList */
+			select member_id
+					,member_nm
+					,ceo_nm
+					,bizrno
+			from cmmt_member
+		  where member_type in ('SOLE', 'CORPORATION' , 'UNIVERSITY')	/*개인사업자,법인사업자,대학회원*/
+		    and member_st = 'NORMAL'  												/*회원상탱-정상*/
+		    and  member_nm like concat('%', #{memberNm}, '%')
+
+		   offset #{beginRowNum} -1
+			limit #{itemsPerPage}
+	</select>
+
+
+
+
+</mapper>

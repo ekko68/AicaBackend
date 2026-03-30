@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aicluster.pms.common.dao.UsptLastSlctnProcessHistDao">
+
+	<insert id="insert">
+		/** UsptLastSlctnProcessHistDao.insert */
+		insert into uspt_last_slctn_process_hist
+			(
+				last_slctn_process_hist_id
+				, evl_last_slctn_id
+				, last_slctn_process_div_cd
+				, resn_cn
+				, creator_id
+				, created_dt
+			) values (
+				#{lastSlctnProcessHistId}
+				, #{evlLastSlctnId}
+				, #{lastSlctnProcessDivCd}
+				, #{resnCn}
+				, #{creatorId}
+				, #{createdDt}
+			)
+	</insert>
+
+	<select id="selectList" resultType="aicluster.pms.common.dto.LastSlctnProcessHistDto">
+		/** UsptLastSlctnProcessHistDao.selectList */
+		select
+			fn_cmm_get_code_nm('${@aicluster.pms.common.util.Code@LSPD_CODE_GROUP}', ulsph.last_slctn_process_div_cd) as last_slctn_process_div
+			, ulsph.resn_cn
+			, ci.member_nm
+			, ci.login_id
+			, ulsph.created_dt
+			, row_number() over (order by ulsph.created_dt desc) as rn
+		from uspt_last_slctn_process_hist ulsph
+			inner join cmmt_insider ci
+				on ci.member_id = ulsph.creator_id
+		where
+			evl_last_slctn_id = #{evlLastSlctnId}
+	</select>
+
+</mapper>

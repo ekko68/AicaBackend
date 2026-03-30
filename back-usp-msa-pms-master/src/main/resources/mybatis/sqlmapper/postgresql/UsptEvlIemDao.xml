@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aicluster.pms.common.dao.UsptEvlIemDao">
+
+	<select id="selectList" resultType="aicluster.pms.common.entity.UsptEvlIem">
+		/** EvlIemDao.selectList */
+		select
+			  evl_iem_id
+			, evl_table_id
+			, evl_div_cd
+			, evl_iem_nm
+			, evl_iem_cn
+			, allot_score
+			, evl_stdr_no
+			, sort_ordr_no
+			, creator_id
+			, created_dt
+			, updater_id
+			, updated_dt
+			, row_number() over (order by sort_ordr_no asc) as rn
+		from uspt_evl_iem_nm
+		where evl_table_id = #{evlTableId}
+	      and evl_div_cd = #{evlDivCd}
+	</select>
+
+	<select id="selectByCmitList" resultType="aicluster.pms.common.dto.EvlIemByCmitDto">
+		/** EvlIemDao.selectByCmitList */
+		select a.evl_iem_nm
+			 , a.evl_iem_id
+		  from uspt_evl_iem_nm a
+			   inner join uspt_evl_cmit b
+					   on a.evl_table_id  = b.evl_table_id
+		 where b.evl_cmit_id = #{evlCmitId}
+	</select>
+
+	<select id="select" resultType="aicluster.pms.common.entity.UsptEvlIem">
+		/** EvlIemDao.select */
+		select evl_iem_id
+			, evl_table_id
+			, evl_div_cd
+			, evl_iem_nm
+			, evl_iem_cn
+			, allot_score
+			, evl_stdr_no
+			, sort_ordr_no
+			, creator_id
+			, created_dt
+			, updater_id
+			, updated_dt
+		  from
+			   uspt_evl_iem_nm
+		 where
+			   evl_iem_id = #{evlIemId}
+	</select>
+
+	<insert id="insert">
+		/** EvlIemDao.insert */
+		insert into uspt_evl_iem_nm
+		     (
+			   evl_iem_id
+			 , evl_table_id
+			 , evl_div_cd
+			 , evl_iem_nm
+			 , evl_iem_cn
+			 , allot_score
+			 , evl_stdr_no
+			 , sort_ordr_no
+			 , creator_id
+			 , created_dt
+			 , updater_id
+			 , updated_dt
+		) values (
+			   #{evlIemId}
+			 , #{evlTableId}
+			 , #{evlDivCd}
+			 , #{evlIemNm}
+			 , #{evlIemCn}
+			 , #{allotScore}
+			 , #{evlStdrNo}
+			 , #{sortOrdrNo}
+			 , #{creatorId}
+			 , #{createdDt}
+			 , #{updaterId}
+			 , #{updatedDt}
+		)
+	</insert>
+
+	<update id="update">
+		/** EvlIemDao.update */
+		update uspt_evl_iem_nm
+		   set
+			   evl_div_cd                = #{evlDivCd}
+			 , evl_iem_nm                = #{evlIemNm}
+			 , evl_iem_cn                = #{evlIemCn}
+			 , allot_score               = #{allotScore}
+			 , evl_stdr_no               = #{evlStdrNo}
+			 , sort_ordr_no              = #{sortOrdrNo}
+			 , updater_id                = #{updaterId}
+			 , updated_dt                = #{updatedDt}
+		where 1=1
+	      and evl_iem_id 	= #{evlIemId}
+		  and evl_table_id  = #{evlTableId}
+	</update>
+
+	<delete id="delete">
+		/** EvlIemDao.delete */
+		delete from uspt_evl_iem_nm
+		where 1=1
+	      and evl_iem_id 	= #{evlIemId}
+		  and evl_table_id  = #{evlTableId}
+	</delete>
+
+</mapper>

@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aicluster.common.common.dao.CmmtQnaQuestDao">
+
+	<sql id="cmmtQnaQuest_cols">
+		 quest_id
+		,qna_id
+		,category_cd
+		,quest_st
+		,quest_st_dt
+		,title
+		,question
+		,quest_attachment_group_id
+		,questioner_id
+		,quest_created_dt
+		,quest_updated_dt
+		,answer
+		,answer_attachment_group_id
+		,answer_creator_id
+		,answer_created_dt
+		,answer_updater_id
+		,answer_updated_dt
+		,(select member_nm from cmmt_member where member_id = questioner_id) as questionerNm
+		,(select member_nm from cmmt_insider where member_id = answer_updater_id) as answererNm
+	</sql>
+
+	<select id="existsQnaQuests" resultType="Boolean">
+		/** CmmtQnaQuestDao.existsQnaQuests */
+		select
+			exists (
+				select 1
+				from cmmt_qna_quest
+				where qna_id = #{qnaId}
+			)
+	</select>
+
+	<select id="select" resultType="aicluster.common.common.entity.CmmtQnaQuest">
+		/** CmmtQnaQuestDao.select */
+		select
+			<include refid="cmmtQnaQuest_cols"/>
+		from
+			cmmt_qna_quest
+		where
+			quest_id = #{questId}
+	</select>
+
+	<sql id="selectList_where">
+		qna_id = #{qnaId}
+		<if test='param.questStatus != null and param.questStatus != ""'>
+			and quest_st = #{param.questStatus}
+		</if>
+		<if test='param.categoryCd != null and param.categoryCd != ""'>
+			and category_cd = #{param.categoryCd}
+		</if>
+		<if test="param.title != null and param.title.length() gt 0">
+			and title like ('%' || #{param.title} || '%')
+		</if>
+		<if test='param.memberNm != null and param.memberNm != ""'>
+			and questioner_id in (select member_id from cmmt_member where member_nm = #{param.memberNm})
+		</if>
+		<if test='param.questBeginDay != null and param.questBeginDay.length() eq 8 and param.questEndDay != null and param.questEndDay.length() eq 8'>
+			and quest_created_dt between to_timestamp(#{param.questBeginDay} || '000000', 'yyyymmddhh24miss') and to_timestamp(#{param.questEndDay} || '235959', 'yyyymmddhh24miss')
+		</if>
+		<if test='questionerId != null and questionerId != ""'>
+			and questioner_id = #{questionerId}
+		</if>
+	</sql>
+
+	<select id="selectList_count" resultType="Long">
+		/** CmmtQnaQuestDao.selectList_count */
+		select
+			count(*) as cnt
+		from
+			cmmt_qna_quest
+		where
+			<include refid="selectList_where"/>
+	</select>
+
+	<select id="selectList" resultType="aicluster.common.common.entity.CmmtQnaQuest">
+		/** CmmtQnaQuestDao.selectList */
+		select
+			a.*
+			,#{totalItems} + 1 - (row_number() over(order by quest_created_dt desc, title asc)) as rn
+		from
+			cmmt_qna_quest a
+		where
+			<include refid="selectList_where"/>
+		offset
+			#{beginRowNum} -1
+		limit
+			#{itemsPerPage}
+	</select>
+
+	<update id="update">
+		/** CmmtQnaQuestDao.update */
+		update cmmt_qna_quest set
+			 qna_id                     = #{qnaId}
+			,category_cd                = #{categoryCd}
+			,quest_st                   = #{questSt}
+			,quest_st_dt                = #{questStDt}
+			,title                      = #{title}
+			,question                   = #{question}
+			,quest_attachment_group_id  = #{questAttachmentGroupId}
+			,questioner_id              = #{questionerId}
+			,quest_created_dt           = #{questCreatedDt}
+			,quest_updated_dt           = #{questUpdatedDt}
+			,answer                     = #{answer}
+			,answer_attachment_group_id = #{answerAttachmentGroupId}
+			,answer_creator_id          = #{answerCreatorId}
+			,answer_created_dt          = #{answerCreatedDt}
+			,answer_updater_id          = #{answerUpdaterId}
+			,answer_updated_dt          = #{answerUpdatedDt}
+		where
+			quest_id = #{questId}
+	</update>
+
+	<insert id="insert">
+		/** CmmtQnaQuestDao.insert */
+		insert into cmmt_qna_quest (
+			 quest_id
+			,qna_id
+			,category_cd
+			,quest_st
+			,quest_st_dt
+			,title
+			,question
+			,quest_attachment_group_id
+			,questioner_id
+			,quest_created_dt
+			,quest_updated_dt
+			,answer
+			,answer_attachment_group_id
+			,answer_creator_id
+			,answer_created_dt
+			,answer_updater_id
+			,answer_updated_dt
+		) values (
+			 #{questId}
+			,#{qnaId}
+			,#{categoryCd}
+			,#{questSt}
+			,#{questStDt}
+			,#{title}
+			,#{question}
+			,#{questAttachmentGroupId}
+			,#{questionerId}
+			,#{questCreatedDt}
+			,#{questUpdatedDt}
+			,#{answer}
+			,#{answerAttachmentGroupId}
+			,#{answerCreatorId}
+			,#{answerCreatedDt}
+			,#{answerUpdaterId}
+			,#{answerUpdatedDt}
+		)
+	</insert>
+
+	<delete id="delete">
+		/** CmmtQnaQuestDao.delete */
+		delete from
+			cmmt_qna_quest
+		where
+			quest_id = #{questId}
+	</delete>
+</mapper>

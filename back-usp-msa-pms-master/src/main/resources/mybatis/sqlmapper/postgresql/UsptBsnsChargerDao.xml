@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aicluster.pms.common.dao.UsptBsnsChargerDao">
+
+	<insert id="insert">
+		/** UsptBsnsChargerDao.insert */
+		insert into uspt_bsns_charger
+			(
+				bsns_cd
+				, insider_id
+				, charger_author_cd
+				, reprsnt_charger
+				, creator_id
+				, created_dt
+				, updater_id
+				, updated_dt
+			) values (
+				#{bsnsCd}
+				, #{insiderId}
+				, #{chargerAuthorCd}
+				, #{reprsntCharger}
+				, #{creatorId}
+				, #{createdDt}
+				, #{updaterId}
+				, #{updatedDt}
+			)
+	</insert>
+
+	<insert id="insertList">
+		/** UsptBsnsChargerDao.insertList */
+		insert into uspt_bsns_charger
+			(
+				bsns_cd
+				, insider_id
+				, charger_author_cd
+				, reprsnt_charger
+				, creator_id
+				, created_dt
+				, updater_id
+				, updated_dt
+			) values
+		<foreach item="item" collection="list" separator=",">
+			(
+				#{item.bsnsCd}
+				, #{item.insiderId}
+				, #{item.chargerAuthorCd}
+				, #{item.reprsntCharger}
+				, #{item.creatorId}
+				, #{item.createdDt}
+				, #{item.updaterId}
+				, #{item.updatedDt}
+			)
+		</foreach>
+	</insert>
+
+
+	<update id="update">
+		/** UsptBsnsChargerDao.update */
+		update uspt_bsns_charger
+		set
+			updater_id			= #{updaterId}
+			, updated_dt		= #{updatedDt}
+			, reprsnt_charger	= #{reprsntCharger}
+			, charger_author_cd	= #{chargerAuthorCd}
+		where
+			bsns_cd = #{bsnsCd}
+			and insider_id = #{insiderId}
+	</update>
+
+
+	<delete id="delete">
+		/** UsptBsnsChargerDao.delete */
+		delete from uspt_bsns_charger
+		where
+			bsns_cd = #{bsnsCd}
+			and insider_id = #{insiderId}
+	</delete>
+
+
+	<select id="selectList" resultType="aicluster.pms.common.entity.UsptBsnsCharger">
+		/** UsptBsnsChargerDao.selectList */
+		select
+			ubc.bsns_cd
+			, ubc.insider_id
+			, ci.member_nm  as insider_nm
+			, ci.position_nm
+			, ubc.charger_author_cd
+			, ubc.reprsnt_charger
+			, fn_cmm_get_code_nm('DEPT_CD', ci.dept_nm) as dept_nm
+		from uspt_bsns_charger ubc
+			inner join cmmt_insider ci
+				on ci.member_id = ubc.insider_id
+		where
+			ubc.bsns_cd = #{bsnsCd}
+		order by ubc.charger_author_cd desc, ubc.reprsnt_charger
+	</select>
+
+
+</mapper>

@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aicluster.common.common.dao.CmmtQnaAnswererDao">
+
+	<sql id="cmmtQnaAnswerer_cols">
+		 a.qna_id
+		,a.member_id
+		,a.creator_id
+		,a.created_dt
+		,(select login_id from cmmt_insider where member_id = a.member_id) as login_id
+		,(select member_nm from cmmt_insider where member_id = a.member_id) as member_nm
+		,(select fn_cmm_get_code_nm('DEPT_CD', dept_nm) as dept_nm from cmmt_insider where member_id = a.member_id) as dept_nm
+		,(select position_nm from cmmt_insider where member_id = a.member_id) as position_nm
+	</sql>
+
+	<select id="select" resultType="aicluster.common.common.entity.CmmtQnaAnswerer">
+		/** CmmtQnaAnswererDao.select */
+		select
+			<include refid="cmmtQnaAnswerer_cols"/>
+		from cmmt_qna_answerer a
+		where
+			qna_id = #{qnaId}
+			and member_id = #{memberId}
+	</select>
+
+	<select id="selectList" resultType="aicluster.common.common.entity.CmmtQnaAnswerer">
+		/** CmmtQnaAnswererDao.selectList */
+		select
+			<include refid="cmmtQnaAnswerer_cols"/>
+		from cmmt_qna_answerer a
+		where
+			qna_id = #{qnaId}
+			<if test='memberNm != null and memberNm != ""'>
+				and member_id in (select member_id from cmmt_member where member_nm = #{memberNm})
+			</if>
+			<if test='loginId != null and loginId != ""'>
+				and member_id in (select member_id from cmmt_member where login_id = #{loginId})
+			</if>
+	</select>
+
+	<insert id="insert">
+		/** CmmtQnaAnswererDao.insert */
+		insert into cmmt_qna_answerer (
+			 qna_id
+			,member_id
+			,creator_id
+			,created_dt
+		) values (
+			 #{qnaId}
+			,#{memberId}
+			,#{creatorId}
+			,#{createdDt}
+		)
+	</insert>
+
+	<insert id="insertList">
+		/** CmmtQnaAnswererDao.insertList */
+		insert into cmmt_qna_answerer (
+			 qna_id
+			,member_id
+			,creator_id
+			,created_dt
+		) values
+		<foreach item="item" collection="list" separator=",">
+			(
+				 #{item.qnaId}
+				,#{item.memberId}
+				,#{item.creatorId}
+				,#{item.createdDt}
+			)
+		</foreach>
+	</insert>
+
+	<delete id="delete">
+		/** CmmtQnaAnswererDao.delete */
+		delete from cmmt_qna_answerer
+		where
+			qna_id = #{qnaId}
+			and member_id = #{memberId}
+	</delete>
+
+	<delete id="deleteList">
+		/** CmmtQnaAnswererDao.deleteList */
+		delete from cmmt_qna_answerer
+		where
+			qna_id = #{qnaId}
+	</delete>
+</mapper>

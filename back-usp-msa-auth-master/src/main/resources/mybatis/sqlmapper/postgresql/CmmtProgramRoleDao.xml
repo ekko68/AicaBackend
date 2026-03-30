@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aicluster.member.common.dao.CmmtProgramRoleDao">
+
+	<select id="selectList" resultType="aicluster.member.common.entity.CmmtProgramRole">
+		/** CmmtProgramRoleDao.selectList */
+		select
+			program_id
+			,role_id
+			,creator_id
+			,created_dt
+		from
+			cmmt_program_role
+		where
+			program_id = #{programId}
+	</select>
+
+	<select id="selectByRoleId" resultType="aicluster.member.common.entity.CmmtProgramRole">
+		/** CmmtProgramRoleDao.selectByRoleId */
+		select
+			program_id
+			,role_id
+			,creator_id
+			,created_dt
+		from
+			cmmt_program_role
+		where
+			role_id = #{roleId}
+	</select>
+
+	<insert id="insertList">
+		/** CmmtProgramRoleDao.insertList */
+		insert into cmmt_program_role (
+			program_id
+			,role_id
+			,creator_id
+			,created_dt
+		) values
+		<foreach item="item" index="index" collection="list" separator=",">
+			(
+				#{item.programId}
+				,#{item.roleId}
+				,#{item.creatorId}
+				,#{item.createdDt}
+			)
+		</foreach>
+	</insert>
+
+	<delete id="deleteProgramId">
+		/** CmmtProgramRoleDao.deleteList */
+		delete from
+			cmmt_program_role
+		where
+			program_id = #{programId}
+	</delete>
+
+</mapper>

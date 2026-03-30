@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aicluster.batch.common.dao.CmmtMemberDao">
+
+	<sql id="cmmtMember_columns">
+		member_id
+		,login_id
+		,enc_passwd
+		,passwd_dt
+		,passwd_init
+		,member_nm
+		,nickname
+		,gender
+		,authority_id
+		,fn_cmm_get_authority_nm(authority_id) as authority_nm
+		,member_st
+		,fn_cmm_get_code_nm('MEMBER_ST', member_st) as member_st_nm
+		,member_st_dt
+		,member_type
+		,black_list_begin_day
+		,black_list_end_day
+		,black_list_reason
+		,fn_cmm_get_code_nm('MEMBER_TYPE', member_type) as member_type_nm
+		,ci
+		,enc_email
+		,enc_birthday
+		,enc_mobile_no
+		,bizrno
+		,refresh_token
+		,kakao_token
+		,naver_token
+		,google_token
+		,last_login_dt
+		,creator_id
+		,created_dt
+		,updater_id
+		,updated_dt
+	</sql>
+
+	<select id="select" resultType="aicluster.batch.common.entity.CmmtMember">
+		/** CmmtMemberDao.select */
+		select
+			<include refid="cmmtMember_columns" />
+		from cmmt_member
+		where
+			member_id = #{memberId}
+	</select>
+
+	<select id="selectList_blackMemberToNormal" resultType="aicluster.batch.common.entity.CmmtMember">
+		/** CmmtMemberDao.selectList_blackMemberToNormal */
+		select
+			<include refid="cmmtMember_columns" />
+		from cmmt_member
+		where
+			<![CDATA[
+			member_st = 'BLACK'
+			and black_list_end_day < to_char(now(), 'yyyymmdd')
+			]]>
+	</select>
+
+	<update id="update">
+		/** CmmtMemberDao.update */
+		update cmmt_member set
+			 login_id      			= #{loginId}
+			,enc_passwd    			= #{encPasswd}
+			,passwd_dt     			= #{passwdDt}
+			,passwd_init   			= #{passwdInit}
+			,member_nm     			= #{memberNm}
+			,nickname      			= #{nickname}
+			,gender        			= #{gender}
+			,authority_id  			= #{authorityId}
+			,member_st    			= #{memberSt}
+			,member_st_dt  			= #{memberStDt}
+			,black_list_begin_day   = #{blackListBeginDay}
+			,black_list_end_day     = #{blackListEndDay}
+			,black_list_reason      = #{blackListReason}
+			,member_type   			= #{memberType}
+			,ci            			= #{ci}
+			,enc_email     			= #{encEmail}
+			,enc_birthday  			= #{encBirthday}
+			,enc_mobile_no 			= #{encMobileNo}
+			,bizrno        			= #{bizrno}
+			,refresh_token 			= #{refreshToken}
+			,kakao_token            = #{kakaoToken}
+			,naver_token            = #{naverToken}
+			,google_token           = #{googleToken}
+			,last_login_dt          = #{lastLoginDt}
+			,creator_id    			= #{creatorId}
+			,created_dt    			= #{createdDt}
+			,updater_id    			= #{updaterId}
+			,updated_dt    			= #{updatedDt}
+		where
+			member_id = #{memberId}
+	</update>
+
+	<select id="selectList_lastLoginDt" resultType="aicluster.batch.common.entity.CmmtMember">
+		/** CmmtMemberDao.selectList_lastLoginDt */
+		select
+			<include refid="cmmtMember_columns" />
+		from
+			cmmt_member
+		where
+			<![CDATA[
+			member_st not in ('DORMANT', 'SECESSION')
+			and (
+				last_login_dt between
+					to_timestamp(#{day} || '000000', 'yyyymmddhh24miss')
+					and to_timestamp(#{day} || '235959', 'yyyymmddhh24miss')
+				or (
+					last_login_dt is null
+					and created_dt between
+						to_timestamp(#{day} || '000000', 'yyyymmddhh24miss')
+						and to_timestamp(#{day} || '235959', 'yyyymmddhh24miss')
+				)
+			)
+			]]>
+	</select>
+
+	<update id="updateToDormant">
+	<![CDATA[
+		/** CmmtMemberDao.updateToDormant */
+		update cmmt_member set
+			member_st = 'DORMANT',
+			member_st_dt = now()
+		where
+			member_st not in ('DORMANT', 'SECESSION')
+			and (
+				last_login_dt <= to_timestamp(#{day} || '235959', 'yyyymmddhh24miss')
+				or (
+					last_login_dt is null
+					and created_dt <= to_timestamp(#{day} || '235959', 'yyyymmddhh24miss')
+				)
+			)
+	]]>
+	</update>
+
+	<select id="selectList_memberSt" resultType="aicluster.batch.common.entity.CmmtMember">
+		/** CmmtMemberDao.selectList_memberSt */
+		select
+			<include refid="cmmtMember_columns" />
+		from cmmt_member
+		where member_st = #{memberSt}
+			<if test="day > 0">
+			<![CDATA[and date_part('DAY', now() - member_st_dt) > #{day}]]>
+			</if>
+	</select>
+
+	<delete id="delete">
+		/** CmmtMemberDao.delete */
+		delete
+		from cmmt_member
+		where member_id = #{memberId}
+	</delete>
+</mapper>

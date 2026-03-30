@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aicluster.pms.common.dao.UsptBsnsPblancRceptDao">
+
+	<select id="selectList" resultType="aicluster.pms.common.entity.UsptBsnsPblancRcept">
+		/** UsptBsnsPblancRceptDao.selectList */
+		select a.pblanc_id
+			 , a.rcept_odr
+			 , a.begin_dt
+			 , a.end_dt
+			 , to_char(a.begin_dt,'yyyy-mm-dd') || ' ~ ' || to_char(a.end_dt,'yyyy-mm-dd hh24:mi:ss') as  rcrit_pd
+			 , row_number() over (order by a.begin_dt desc) as rn
+		from uspt_bsns_pblanc_rcept a 					/*사업공고접수*/
+		<where>
+			<if test='pblancId != null and pblancId != ""'>
+				and a.pblanc_id = #{pblancId}
+			</if>
+		</where>
+		offset #{beginRowNum} -1
+		limit #{itemsPerPage}
+	</select>
+
+
+	<select id="selectListCount" resultType="Long">
+		/** UsptBsnsPblancRceptDao.selectListCount */
+		select count(pblanc_id) as cnt
+		  from uspt_bsns_pblanc_rcept
+			where 1 = 1
+		<if test='pblancId != null and pblancId != ""'>
+			and pblanc_id = #{pblancId}
+		</if>
+	</select>
+
+	<insert id="insert">
+		/** UsptBsnsPblancRceptDao.insert */
+		insert into uspt_bsns_pblanc_rcept
+								(
+									pblanc_id
+									, rcept_odr
+									, begin_dt
+									, end_dt
+									, creator_id
+									, created_dt
+									, updater_id
+									, updated_dt
+								)
+			select
+				#{pblancId}
+				, coalesce(max(rcept_odr), 0) + 1
+				, #{beginDt}
+				, #{endDt}
+				, #{creatorId}
+				, #{createdDt}
+				, #{updaterId}
+				, #{updatedDt}
+			from uspt_bsns_pblanc_rcept
+			where
+				pblanc_id = #{pblancId}
+	</insert>
+
+	<update id="update">
+		/** UsptBsnsPblancRceptDao.update */
+		update uspt_bsns_pblanc_rcept
+		set
+			begin_dt = #{beginDt}
+			, end_dt = #{endDt}
+			, updater_id = #{updaterId}
+			, updated_dt = #{updatedDt}
+		where
+			pblanc_id = #{pblancId}
+			and rcept_odr = (select max(rcept_odr) from uspt_bsns_pblanc_rcept where pblanc_id = #{pblancId})
+	</update>
+
+</mapper>

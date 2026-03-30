@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aicluster.pms.common.dao.UsptJobCareerDao">
+
+	<insert id="insert">
+		/** UsptJobCareerDao.insert */
+		insert into uspt_job_career
+			(
+				job_career_id
+				, member_id
+				, wrkplc
+				, bgnde
+				, endde
+				, job
+				, retire_resn
+				, creator_id
+				, created_dt
+				, updater_id
+				, updated_dt
+			) values (
+				#{jobCareerId}
+				, #{memberId}
+				, #{wrkplc}
+				, #{bgnde}
+				, #{endde}
+				, #{job}
+				, #{retireResn}
+				, #{creatorId}
+				, #{createdDt}
+				, #{updaterId}
+				, #{updatedDt}
+			)
+	</insert>
+
+	<update id="update">
+		/** UsptJobCareerDao.update */
+		update uspt_job_career
+		set
+			wrkplc			= #{wrkplc}
+			, bgnde			= #{bgnde}
+			, endde			= #{endde}
+			, job			= #{job}
+			, retire_resn	= #{retireResn}
+			, updater_id	= #{updaterId}
+			, updated_dt	= #{updatedDt}
+		where
+			member_id = #{memberId}
+			and job_career_id = #{jobCareerId}
+	</update>
+
+	<delete id="delete">
+		/** UsptJobCareerDao.delete */
+		delete from uspt_job_career
+		where
+			member_id = #{memberId}
+			and job_career_id = #{jobCareerId}
+	</delete>
+
+	<select id="selectList" resultType="aicluster.pms.common.entity.UsptJobCareer">
+		/** UsptJobCareerDao.selectList */
+		select
+			job_career_id
+			, member_id
+			, wrkplc
+			, bgnde
+			, endde
+			, job
+			, retire_resn
+			, creator_id
+			, created_dt
+			, updater_id
+			, updated_dt
+			, row_number() over (order by bgnde, created_dt) as rn
+		from uspt_job_career
+		where
+			member_id = #{memberId}
+	</select>
+</mapper>

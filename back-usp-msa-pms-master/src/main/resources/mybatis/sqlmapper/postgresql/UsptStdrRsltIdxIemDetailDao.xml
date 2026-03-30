@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aicluster.pms.common.dao.UsptStdrRsltIdxDetailIemDao">
+
+	<insert id="insert">
+		/** UsptStdrRsltIdxIemDetailDao.insert*/
+		insert into uspt_stdr_rslt_idx_detail_iem
+									(
+										rslt_idx_detail_iem_id
+										, rslt_idx_id
+										, detail_iem_nm
+										, iem_unit_cd
+										, creator_id
+										, created_dt
+										, updater_id
+										, updated_dt
+									)
+							values	(
+										#{rsltIdxDetailIemId}
+										, #{rsltIdxId}
+										, #{detailIemNm}
+										, #{iemUnitCd}
+										, #{creatorId}
+										, #{createdDt}
+										, #{updaterId}
+										, #{updatedDt}
+									)
+	</insert>
+
+	<update id="update">
+		/** UsptStdrRsltIdxIemDetailDao.update */
+		update uspt_stdr_rslt_idx_detail_iem
+		set
+			updater_id		= #{updaterId}
+			, updated_dt	= #{updatedDt}
+			, detail_iem_nm	= #{detailIemNm}
+			, iem_unit_cd	= #{iemUnitCd}
+		where
+			rslt_idx_detail_iem_id = #{rsltIdxDetailIemId}
+			and rslt_idx_id = #{rsltIdxId}
+	</update>
+
+	<delete id="delete">
+		/** UsptStdrRsltIdxIemDetailDao.delete */
+		delete from uspt_stdr_rslt_idx_detail_iem
+		where
+			rslt_idx_detail_iem_id = #{rsltIdxDetailIemId}
+			and rslt_idx_id = #{rsltIdxId}
+	</delete>
+
+	<delete id="deleteAll">
+		/** UsptStdrRsltIdxIemDetailDao.deleteAll */
+		delete from uspt_stdr_rslt_idx_detail_iem
+		where
+			rslt_idx_id = #{rsltIdxId}
+	</delete>
+
+</mapper>

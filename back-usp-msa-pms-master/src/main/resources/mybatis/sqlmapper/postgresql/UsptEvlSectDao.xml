@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aicluster.pms.common.dao.UsptEvlSectDao">
+
+	<select id="selectList" resultType="aicluster.pms.common.entity.UsptSect">
+		/** UsptEvlSectDao.selectList */
+		select sect_id
+			 , evl_plan_id
+			 , sect_nm
+			 , evl_trget_co
+			 , creator_id
+			 , created_dt
+			 , updater_id
+			 , updated_dt
+		  from uspt_sect
+		 where 1 = 1
+	 	   and evl_plan_id = #{evlPlanId}
+	</select>
+
+	<select id="selectExistList" resultType="aicluster.pms.common.entity.UsptSect">
+		/** UsptEvlSectDao.selectExistList */
+		select sect_id
+			 , evl_plan_id
+			 , sect_nm
+			 , evl_trget_co
+			 , creator_id
+			 , created_dt
+			 , updater_id
+			 , updated_dt
+		  from uspt_sect
+		 where 1 = 1
+	 	   and evl_plan_id = #{evlPlanId}
+			<if test='sectId != null and sectId != ""'>
+	 	   		and sect_id = #{sectId}
+			</if>
+	</select>
+
+	<insert id="insert">
+		/** UsptEvlSectDao.insert */
+		insert into uspt_sect (
+			   sect_id
+			 , evl_plan_id
+			 , sect_nm
+			 , evl_trget_co
+			 , creator_id
+			 , created_dt
+			 , updater_id
+			 , updated_dt
+		) values (
+			   #{sectId}
+			 , #{evlPlanId}
+			 , #{sectNm}
+			 , #{evlTrgetCo}
+			 , #{creatorId}
+			 , #{createdDt}
+			 , #{updaterId}
+			 , #{updatedDt}
+		)
+	</insert>
+
+	<update id="update">
+		/** UsptEvlSectDao.update */
+		update uspt_sect set
+			   sect_nm                   = #{sectNm}
+			 , evl_trget_co              = #{evlTrgetCo}
+			 , updater_id                = #{updaterId}
+			 , updated_dt                = #{updatedDt}
+		where
+			sect_id = #{sectId}
+	</update>
+
+	<delete id="delete">
+		/** UsptEvlSectDao.delete */
+		delete from uspt_sect
+   		 where sect_id = #{sectId}
+	</delete>
+
+</mapper>

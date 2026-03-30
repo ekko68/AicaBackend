@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aicluster.pms.common.dao.UsptRsltHistDao">
+	<insert id="insert">
+		/** UsptRsltHistDao.insert */
+		insert into uspt_rslt_hist
+			(
+				rslt_hist_id
+				, rslt_id
+				, rslt_sttus_cd
+				, presentn_dt
+				, attachment_group_id
+				, process_cn
+				, process_mber_type
+				, creator_id
+				, created_dt
+			) values (
+				#{rsltHistId}
+				, #{rsltId}
+				, #{rsltSttusCd}
+				, #{presentnDt}
+				, #{attachmentGroupId}
+				, #{processCn}
+				, #{processMberType}
+				, #{creatorId}
+				, #{createdDt}
+			)
+	</insert>
+
+	<select id="select" resultType="aicluster.pms.common.entity.UsptRsltHist">
+		/** UsptRsltHistDao.select */
+		select
+			rslt_hist_id
+			, rslt_id
+			, rslt_sttus_cd
+			, presentn_dt
+			, attachment_group_id
+			, process_cn
+			, process_mber_type
+			, creator_id
+			, created_dt
+		from uspt_rslt_hist
+		where
+			rslt_hist_id = #{rsltHistId}
+			and rslt_id = #{rsltId}
+	</select>
+
+
+	<select id="selectList" resultType="aicluster.pms.common.entity.UsptRsltHist">
+		/** UsptRsltHistDao.selectList */
+		select
+			urh.rslt_hist_id
+			, urh.rslt_id
+			, urh.rslt_sttus_cd
+			, fn_cmm_get_code_nm('${@aicluster.pms.common.util.Code@REPRT_CODE_GROUP}', urh.rslt_sttus_cd) as rslt_sttus
+			, urh.presentn_dt
+			, urh.attachment_group_id
+			, urh.process_cn
+			, urh.process_mber_type
+			, urh.creator_id
+			, urh.created_dt
+			, ci.member_nm as opetr_nm
+			, ci.login_id
+		from uspt_rslt_hist urh
+			left outer join cmmt_insider ci
+				on ci.member_id = urh.creator_id
+		where
+			urh.rslt_id = #{rsltId}
+			<if test='processMberType != null and processMberType != ""'>
+				and urh.process_mber_type = #{processMberType}
+			</if>
+		order by urh.created_dt desc
+	</select>
+
+
+	<select id="selectPresentnDtList" resultType="aicluster.pms.common.dto.RsltHistPresentnDto">
+		/** UsptRsltHistDao.selectPresentnDtList */
+		select
+			urh.rslt_hist_id
+			, urh.presentn_dt
+			, case when urh.process_mber_type = 'INSIDER' then '관리자' else ci.member_nm end as opetr_nm
+		from uspt_rslt_hist urh
+			left outer join cmmt_insider ci
+				on ci.member_id = urh.creator_id
+		where
+			urh.rslt_id = #{rsltId}
+			and urh.rslt_sttus_cd = '${@aicluster.pms.common.util.Code@RSLT_PS}'
+		order by urh.created_dt desc
+	</select>
+
+</mapper>

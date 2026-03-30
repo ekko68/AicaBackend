@@ -1,0 +1,348 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aicluster.common.common.dao.CmmtBoardArticleDao">
+
+	<sql id="cmmtBoardArticle_cols">
+		 article_id
+		,board_id
+		,title
+		,article
+		,notice
+		,attachment_group_id
+		,image_group_id
+		,category_cd
+		,posting
+		,web_editor
+		,shared_url
+		,pc_thumbnail_file_id
+		,mobile_thumbnail_file_id
+		,thumbnail_alt_cn
+		,read_cnt
+		,creator_id
+		,fn_cmm_get_member_nm(creator_id) as creator_nm
+		,created_dt
+		,updater_id
+		,fn_cmm_get_member_nm(updater_id) as updater_nm
+		,updated_dt
+	</sql>
+
+	<sql id="cmmtBoardArticle_listCols">
+		 ${alias}article_id
+		,${alias}board_id
+		,${alias}title
+		,${alias}article
+		,${alias}notice
+		,${alias}attachment_group_id
+		,${alias}image_group_id
+		,${alias}category_cd
+		,${alias}posting
+		,${alias}web_editor
+		,${alias}shared_url
+		,${alias}pc_thumbnail_file_id
+		,${alias}mobile_thumbnail_file_id
+		,${alias}thumbnail_alt_cn
+		,${alias}read_cnt
+		,${alias}creator_id
+		,fn_cmm_get_member_nm(${alias}creator_id) as creator_nm
+		,${alias}created_dt
+		,${alias}updater_id
+		,fn_cmm_get_member_nm(${alias}updater_id) as updater_nm
+		,${alias}updated_dt
+	</sql>
+
+	<select id="existsBoardArticles" resultType="Boolean">
+		/** CmmtBoardArticleDao.existsBoardArticles */
+		select
+			exists (
+				select 1
+				from cmmt_board_article
+				where board_id = #{boardId}
+			)
+	</select>
+
+	<select id="select" resultType="aicluster.common.common.entity.CmmtBoardArticle">
+		/** CmmtBoardArticleDao.select */
+		select
+			<include refid="cmmtBoardArticle_cols" />
+		from
+			cmmt_board_article
+		where
+			article_id = #{articleId}
+	</select>
+
+	<sql id="where-selectList">
+		a.notice = false
+		<if test='param.boardId != null and param.boardId != ""'>
+			and a.board_id = #{param.boardId}
+		</if>
+		<if test='param.categoryCd != null and param.categoryCd != ""'>
+			and a.category_cd = #{param.categoryCd}
+		</if>
+		<if test='param.title != null and param.title != ""'>
+			and a.title like '%' || #{param.title} || '%'
+		</if>
+		<if test='param.posting != null'>
+			and a.posting = #{param.posting}
+		</if>
+		<if test='param.beginDay != null and param.beginDay != ""'>
+			and a.created_dt <![CDATA[>=]]> to_timestamp(#{param.beginDay} || '000000', 'yyyymmddhh24miss')
+		</if>
+		<if test='param.endDay != null and param.endDay != ""'>
+			and a.created_dt <![CDATA[<=]]> to_timestamp(#{param.endDay} || '000000', 'yyyymmddhh24miss')
+		</if>
+		<if test='param.articleSrchWord != null and param.articleSrchWord != ""'>
+			and (
+			<choose>
+				<when test='param.articleSrchCd eq "TITLE"'>
+				a.title like '%' || #{param.articleSrchWord} || '%'
+				</when>
+				<when test='param.articleSrchCd eq "CONTENT"'>
+				a.article like '%' || #{param.articleSrchWord} || '%'
+				or a.article_id in (
+									select article_id
+									from cmmt_board_article_cn
+									where header like '%' || #{param.articleSrchWord} || '%'
+									or article_cn like '%' || #{param.articleSrchWord} || '%'
+								 )
+				</when>
+				<when test='param.articleSrchCd eq "ALLPLUS"'>
+				a.title like '%' || #{param.articleSrchWord} || '%'
+				or a.article like '%' || #{param.articleSrchWord} || '%'
+				or a.article_id in (
+									select article_id
+									from cmmt_board_article_cn
+									where header like '%' || #{param.articleSrchWord} || '%'
+									or article_cn like '%' || #{param.articleSrchWord} || '%'
+								 )
+				or b.login_id like '%' || #{param.articleSrchWord} || '%'
+				or b.member_nm like '%' || #{param.articleSrchWord} || '%'
+				</when>
+				<otherwise>
+				a.title like '%' || #{param.articleSrchWord} || '%'
+				or a.article like '%' || #{param.articleSrchWord} || '%'
+				or a.article_id in (
+									select article_id
+									from cmmt_board_article_cn
+									where header like '%' || #{param.articleSrchWord} || '%'
+									or article_cn like '%' || #{param.articleSrchWord} || '%'
+								 )
+				</otherwise>
+			</choose>
+			    )
+		</if>
+	</sql>
+
+	<select id="selectList_count" resultType="Long">
+		/** CmmtBoardArticleDao.selectList_count */
+		select
+			count(*)
+		from cmmt_board_article a
+		left join cmmv_user b
+		  on a.creator_id = b.member_id
+		where
+			<include refid="where-selectList"/>
+	</select>
+
+	<select id="selectList" resultType="aicluster.common.common.dto.BoardArticleListItem">
+		/** CmmtBoardArticleDao.selectList */
+		select
+			<include refid="cmmtBoardArticle_listCols"><property name="alias" value="a."/></include>
+			,#{totalItems} + 1 - (row_number() over (order by a.created_dt desc)) as rn
+		from cmmt_board_article a
+		left join cmmv_user b
+		  on a.creator_id = b.member_id
+		where
+			<include refid="where-selectList"/>
+		offset
+			#{beginRowNum} -1
+		limit
+			#{itemsPerPage}
+	</select>
+
+	<select id="selectList_notice" resultType="aicluster.common.common.dto.BoardArticleListItem">
+		/** CmmtBoardArticleDao.selectList_notice */
+		select
+			<include refid="cmmtBoardArticle_listCols"><property name="alias" value=""/></include>
+			,row_number() over (order by created_dt desc) as rn
+		from
+			cmmt_board_article
+		where
+			notice = true
+			<if test='boardId != null and boardId != ""'>
+				and board_id = #{boardId}
+			</if>
+			<if test='categoryCd != null and categoryCd != ""'>
+				and category_cd = #{categoryCd}
+			</if>
+			<if test='posting != null'>
+				and posting = #{posting}
+			</if>
+	</select>
+
+	<insert id="insert">
+		/** CmmtBoardArticleDao.insert */
+		insert into cmmt_board_article (
+			 article_id
+			,board_id
+			,title
+			,article
+			,notice
+			,attachment_group_id
+			,image_group_id
+			,category_cd
+			,posting
+			,web_editor
+			,shared_url
+			,pc_thumbnail_file_id
+			,mobile_thumbnail_file_id
+			,thumbnail_alt_cn
+			,read_cnt
+			,creator_id
+			,created_dt
+			,updater_id
+			,updated_dt
+		 ) values (
+			 #{articleId}
+			,#{boardId}
+			,#{title}
+			,#{article}
+			,#{notice}
+			,#{attachmentGroupId}
+			,#{imageGroupId}
+			,#{categoryCd}
+			,#{posting}
+			,#{webEditor}
+			,#{sharedUrl}
+			,#{pcThumbnailFileId}
+			,#{mobileThumbnailFileId}
+			,#{thumbnailAltCn}
+			,#{readCnt}
+			,#{creatorId}
+			,#{createdDt}
+			,#{updaterId}
+			,#{updatedDt}
+		 )
+	</insert>
+
+	<update id="update">
+		/** CmmtBoardArticleDao.update */
+		update cmmt_board_article set
+			 board_id                 = #{boardId}
+			,title                    = #{title}
+			,article                  = #{article}
+			,notice                   = #{notice}
+			,attachment_group_id      = #{attachmentGroupId}
+			,image_group_id           = #{imageGroupId}
+			,category_cd              = #{categoryCd}
+			,posting                  = #{posting}
+			,web_editor               = #{webEditor}
+			,shared_url               = #{sharedUrl}
+			,pc_thumbnail_file_id     = #{pcThumbnailFileId}
+			,mobile_thumbnail_file_id = #{mobileThumbnailFileId}
+			,thumbnail_alt_cn         = #{thumbnailAltCn}
+			,read_cnt                 = #{readCnt}
+			,creator_id               = #{creatorId}
+			,created_dt               = #{createdDt}
+			,updater_id               = #{updaterId}
+			,updated_dt               = #{updatedDt}
+		where
+			article_id = #{articleId}
+	</update>
+
+	<delete id="delete">
+		/** CmmtBoardArticleDao.delete */
+		delete from
+			cmmt_board_article
+		where
+			article_id = #{articleId}
+	</delete>
+
+	<update id="incReadCnt">
+		/** CmmtBoardArticleDao.incReadCnt */
+		update cmmt_board_article set
+			read_cnt = read_cnt + 1
+		where
+			article_id = #{articleId}
+	</update>
+
+	<select id="selectList_recent" resultType="aicluster.common.common.dto.BoardArticleListItem">
+		/** CmmtBoardArticleDao.selectList_recent */
+		select
+			<include refid="cmmtBoardArticle_listCols"><property name="alias" value=""/></include>
+			,row_number() over(order by created_dt desc) as rn
+		from
+			cmmt_board_article
+		where
+			posting = true
+			<if test='boardId != null and boardId != ""'>
+				and board_id = #{boardId}
+			</if>
+			<if test='categoryCd != null and categoryCd != ""'>
+				and category_cd = #{categoryCd}
+			</if>
+			<if test='hasNotice != null and hasNotice == false'>
+				and notice = false
+			</if>
+		limit #{cnt}
+	</select>
+
+	<select id="selectPrevNext" resultType="aicluster.common.common.dto.BoardArticlePrevNextItem">
+		/** CmmtBoardArticleDao.selectPrevNext */
+		with tmp_article as (
+		<if test='noticeAvailable == true'>
+			select
+				 a.article_id
+				,a.board_id
+				,a.title
+				,a.notice
+				,a.created_dt
+			from
+				cmmt_board_article a
+			where
+				a.notice = true
+			<if test='param.boardId != null and param.boardId != ""'>
+				and a.board_id = #{param.boardId}
+			</if>
+			<if test='param.categoryCd != null and param.categoryCd != ""'>
+				and a.category_cd = #{param.categoryCd}
+			</if>
+			<if test='param.posting != null'>
+				and a.posting = #{param.posting}
+			</if>
+			union all
+		</if>
+			select
+				 a.article_id
+				,a.board_id
+				,a.title
+				,a.notice
+				,a.created_dt
+			from cmmt_board_article a
+			left join cmmv_user b
+			  on a.creator_id = b.member_id
+			where
+				<include refid="where-selectList"/>
+		)
+		select
+			 y.board_id
+			,y.article_id
+			,y.title
+			,y.prev_article_id
+			,y.prev_title
+			,y.next_article_id
+			,y.next_title
+		from (
+			select
+				 x.*
+				,lead(x.article_id) over w as prev_article_id
+				,lead(x.title) over w as prev_title
+				,lag(x.article_id) over w as next_article_id
+				,lag(x.title) over w as next_title
+			from tmp_article x
+			window w as (partition by x.board_id order by x.notice desc, x.created_dt desc)
+			) y
+		where
+			y.article_id = #{articleId}
+	</select>
+
+</mapper>

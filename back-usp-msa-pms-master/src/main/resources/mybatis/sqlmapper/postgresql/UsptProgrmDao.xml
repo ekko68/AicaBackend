@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aicluster.pms.common.dao.UsptProgrmDao">
+
+	<insert id="insert">
+		/** UsptProgrmDao.insert */
+		insert into uspt_progrm
+			(
+				progrm_id
+				, member_id
+				, progrm_type_cd
+				, progrm_type_input
+				, grad_type_cd
+				, creator_id
+				, created_dt
+				, updater_id
+				, updated_dt
+			) values (
+				#{progrmId}
+				, #{memberId}
+				, #{progrmTypeCd}
+				, #{progrmTypeInput}
+				, #{gradTypeCd}
+				, #{creatorId}
+				, #{createdDt}
+				, #{updaterId}
+				, #{updatedDt}
+			)
+	</insert>
+
+	<update id="update">
+		/** UsptProgrmDao.update */
+		update uspt_progrm
+		set
+			progrm_type_cd		= #{progrmTypeCd}
+			, progrm_type_input	= #{progrmTypeInput}
+			, grad_type_cd		= #{gradTypeCd}
+			, updater_id		= #{updaterId}
+			, updated_dt		= #{updatedDt}
+		where
+			member_id = #{memberId}
+			and progrm_id = #{progrmId}
+	</update>
+
+	<delete id="delete">
+		/** UsptProgrmDao.delete */
+		delete from uspt_progrm
+		where
+			member_id = #{memberId}
+			and progrm_id = #{progrmId}
+	</delete>
+
+	<select id="selectList" resultType="aicluster.pms.common.entity.UsptProgrm">
+		/** UsptProgrmDao.selectList */
+		select
+			progrm_id
+			, member_id
+			, progrm_type_cd
+			, fn_cmm_get_code_nm('PROGRM_TYPE', progrm_type_cd) as progrm_type
+			, progrm_type_input
+			, grad_type_cd
+			, fn_cmm_get_code_nm('GRAD_TYPE', grad_type_cd) as grad_type
+			, creator_id
+			, created_dt
+			, updater_id
+			, updated_dt
+			, row_number() over (order by created_dt) as rn
+		from uspt_progrm
+		where
+			member_id = #{memberId}
+	</select>
+</mapper>

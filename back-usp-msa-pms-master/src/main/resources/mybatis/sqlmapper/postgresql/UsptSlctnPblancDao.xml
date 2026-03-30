@@ -1,0 +1,421 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aicluster.pms.common.dao.UsptSlctnPblancDao">
+
+	<sql id="selectList_where">
+		<where>
+			usp.enabled = true
+			<if test='bsnsYear != null and bsnsYear != ""'>
+				and ub.bsns_year = #{bsnsYear}
+			</if>
+			<if test='bsnsNm != null and bsnsNm != ""'>
+				and ub.bsns_nm like concat('%', #{bsnsNm}, '%')
+			</if>
+			<if test='ntce != null and ntce != ""'>
+				and usp.ntce = #{ntce}
+			</if>
+			<if test='chrgDeptNm != null and chrgDeptNm != ""'>
+				and ub.chrg_dept_nm like concat('%', #{chrgDeptNm}, '%')
+			</if>
+			<if test='keyword != null and keyword != ""'>
+				<choose>
+					<when test='keywordDiv == "pblancNm"'>
+						and usp.slctn_pblanc_nm like concat('%', #{keyword}, '%')
+					</when>
+				</choose>
+			</if>
+		</where>
+	</sql>
+
+	<select id="selectListCount" resultType="Long">
+		/** UsptSlctnPblancDao.selectListCount */
+		select
+			count(usp.slctn_pblanc_id) as cnt
+		from uspt_slctn_pblanc usp
+			inner join uspt_bsns_pblanc ubp
+				on ubp.pblanc_id = usp.pblanc_id
+			inner join uspt_bsns ub
+				on ub.bsns_cd = ubp.bsns_cd
+			inner join uspt_bsns_charger ubc
+				on ubc.bsns_cd = ub.bsns_cd
+				and ubc.insider_id = #{insiderId}
+		<include refid="selectList_where" />
+	</select>
+
+	<select id="selectList" resultType="aicluster.pms.common.dto.SlctnPblancListDto">
+		/** UsptSlctnPblancDao.selectList */
+		select
+			usp.slctn_pblanc_id
+			, usp.slctn_pblanc_nm
+			, case when usp.ntce = true then '게시중' else '게시안함' end as ntce
+			, ub.bsns_year
+			, ub.bsns_nm
+			, ub.chrg_dept_nm
+			, case when ubp.ordtm_rcrit = true then '상시모집' else '정시모집' end as ordtm_rcrit
+			, to_char(to_date(usp.slctn_pblanc_day, 'yyyymmdd'), 'yyyy-mm-dd') as slctn_pblanc_day
+			, to_char(usp.created_dt, 'yyyy-mm-dd') as reg_dt
+			, row_number() over (order by usp.created_dt desc) as rn
+		from uspt_slctn_pblanc usp
+			inner join uspt_bsns_pblanc ubp
+				on ubp.pblanc_id = usp.pblanc_id
+			inner join uspt_bsns ub
+				on ub.bsns_cd = ubp.bsns_cd
+			inner join uspt_bsns_charger ubc
+				on ubc.bsns_cd = ub.bsns_cd
+				and ubc.insider_id = #{insiderId}
+		<include refid="selectList_where" />
+		<if test="!isExcel">
+			offset #{beginRowNum} -1
+			limit #{itemsPerPage}
+		</if>
+	</select>
+
+	<select id="select" resultType="aicluster.pms.common.dto.SlctnPblancDto">
+		/** UsptSlctnPblancDao.select */
+		select
+			usp.slctn_pblanc_id
+			, usp.pblanc_id
+			, usp.rcept_odr
+			, usp.sect_id
+			, usp.evl_step_id
+			, usp.evl_last_slctn_id
+			, usp.slctn_pblanc_nm
+			, usp.slctn_pblanc_no
+			, usp.slctn_pblanc_day
+			, usp.slctn_pblanc_sumry
+			, usp.ntce
+			, usp.enabled
+			, ubp.pblanc_nm
+			, ubp.ordtm_rcrit
+			, ub.bsns_nm
+			, ub.bsns_year
+			, usp.attachment_group_id
+			, ubc.charger_author_cd
+		from uspt_slctn_pblanc usp
+			inner join uspt_bsns_pblanc ubp
+				on usp.pblanc_id = ubp.pblanc_id
+			inner join uspt_bsns ub
+				on ubp.bsns_cd = ub.bsns_cd
+			inner join uspt_bsns_charger ubc
+				on ubc.bsns_cd = ub.bsns_cd
+				and ubc.insider_id = #{insiderId}
+		where
+			slctn_pblanc_id = #{slctnPblancId}
+			and usp.enabled = true
+	</select>
+
+	<insert id="insert">
+		/** UsptSlctnPblancDao.insert */
+		insert into uspt_slctn_pblanc
+							(
+								slctn_pblanc_id
+								, pblanc_id
+								, rcept_odr
+							<if test='evlStepId != null and evlStepId != ""'>
+								, evl_step_id
+							</if>
+							<if test='sectId != null and sectId != ""'>
+								, sect_id
+							</if>
+							<if test='evlLastSlctnId != null and evlLastSlctnId != ""'>
+								, evl_last_slctn_id
+							</if>
+								, slctn_pblanc_nm
+								, slctn_pblanc_no
+								, slctn_pblanc_day
+								, slctn_pblanc_sumry
+								, ntce
+								, enabled
+								, attachment_group_id
+								, creator_id
+								, created_dt
+								, updater_id
+								, updated_dt
+							)
+					values	(
+								#{slctnPblancId}
+								, #{pblancId}
+								, #{rceptOdr}
+							<if test='evlStepId != null and evlStepId != ""'>
+								, #{evlStepId}
+							</if>
+							<if test='sectId != null and sectId != ""'>
+								, #{sectId}
+							</if>
+							<if test='evlLastSlctnId != null and evlLastSlctnId != ""'>
+								, #{evlLastSlctnId}
+							</if>
+								, #{slctnPblancNm}
+								, #{slctnPblancNo}
+								, #{slctnPblancDay}
+								, #{slctnPblancSumry}
+								, #{ntce}
+								, #{enabled}
+								, #{attachmentGroupId}
+								, #{creatorId}
+								, #{createdDt}
+								, #{updaterId}
+								, #{updatedDt}
+							)
+
+	</insert>
+
+	<update id="update">
+		/** UsptSlctnPblancDao.update */
+		update uspt_slctn_pblanc
+		set
+			slctn_pblanc_nm			= #{slctnPblancNm}
+			, slctn_pblanc_no		= #{slctnPblancNo}
+			, slctn_pblanc_day		= #{slctnPblancDay}
+			, slctn_pblanc_sumry	= #{slctnPblancSumry}
+			, attachment_group_id	= #{attachmentGroupId}
+			, updater_id			= #{updaterId}
+			, updated_dt			= #{updatedDt}
+		where
+			slctn_pblanc_id = #{slctnPblancId}
+	</update>
+
+	<update id="updateNtce">
+		/** UsptSlctnPblancDao.updateNtce */
+		update uspt_slctn_pblanc
+		set
+			ntce		 = #{ntce}
+			, updater_id = #{updaterId}
+			, updated_dt = #{updatedDt}
+		where
+			slctn_pblanc_id = #{slctnPblancId}
+	</update>
+
+	<update id="updateUnable">
+		/** UsptSlctnPblancDao.updateUnable */
+		update uspt_slctn_pblanc
+		set
+			enabled		 = false
+			, updater_id = #{updaterId}
+			, updated_dt = #{updatedDt}
+		where
+			slctn_pblanc_id = #{slctnPblancId}
+	</update>
+
+
+	<select id="selectFrontListCount" resultType="Long">
+		/** UsptSlctnPblancDao."selectFrontListCount" */
+		select
+			count(sub.slctn_pblanc_id)
+		from (
+				select
+					usp.slctn_pblanc_id
+				from uspt_slctn_pblanc usp
+						inner join uspt_bsns_pblanc ubp
+							on ubp.pblanc_id = usp.pblanc_id
+						inner join uspt_bsns_pblanc_rcept ubpr
+							on ubpr.pblanc_id  = ubp.pblanc_id
+							and ubpr.rcept_odr = usp.rcept_odr
+						inner join uspt_bsns_pblanc_applcnt ubpa
+							on ubpa.pblanc_id = ubpr.pblanc_id
+							and ubpa.rcept_odr = ubpr.rcept_odr
+						inner join uspt_evl_trget uet
+							on uet.evl_step_id = usp.evl_step_id
+							and uet.sect_id = usp.sect_id
+							and uet.apply_id = ubpa.apply_id
+							and uet.slctn = true
+				where
+					usp.ntce = true
+					and usp.enabled = true
+					and ubpa.member_id = #{memberId}
+				<if test='slctnPblancNm != null and slctnPblancNm != ""'>
+					and usp.slctn_pblanc_nm like concat('%', #{slctnPblancNm}, '%')
+				</if>
+			union all
+				select
+					usp.slctn_pblanc_id
+				from uspt_slctn_pblanc usp
+						inner join uspt_bsns_pblanc ubp
+							on ubp.pblanc_id = usp.pblanc_id
+						inner join uspt_bsns_pblanc_rcept ubpr
+							on ubpr.pblanc_id  = ubp.pblanc_id
+							and ubpr.rcept_odr = usp.rcept_odr
+						inner join uspt_bsns_pblanc_applcnt ubpa
+							on ubpa.pblanc_id = ubpr.pblanc_id
+							and ubpa.rcept_odr = ubpr.rcept_odr
+						inner join uspt_last_slctn_trget ulst
+							on ulst.evl_last_slctn_id = usp.evl_last_slctn_id
+							and ulst.slctn = true
+				where
+					usp.ntce = true
+					and usp.enabled = true
+					and ubpa.member_id = #{memberId}
+				<if test='slctnPblancNm != null and slctnPblancNm != ""'>
+					and usp.slctn_pblanc_nm like concat('%', #{slctnPblancNm}, '%')
+				</if>
+			) sub
+	</select>
+
+	<select id="selectFrontList" resultType="aicluster.pms.common.dto.FrontSlctnPblancListDto">
+		/** UsptSlctnPblancDao.selectFrontList */
+		select	main.*
+		from	(
+					select
+						sub.*
+						, lag(sub.slctn_pblanc_id, 1) over(order by sub.created_dt desc) 							as pre_slctn_pblanc_id
+						, lag(sub.slctn_pblanc_nm, 1, '이전 선정결과공고가 없습니다.') over(order by sub.created_dt desc)	as pre_slctn_pblanc_nm
+						, lead (sub.slctn_pblanc_id, 1) over(order by sub.created_dt desc)							as next_slctn_pblanc_id
+						, lead (sub.slctn_pblanc_nm, 1, '다음 선정결과공고가 없습니다.') over(order by sub.created_dt desc)	as next_slctn_pblanc_nm
+					from (
+							select
+								usp.slctn_pblanc_id
+								, usp.slctn_pblanc_nm
+								, usp.slctn_pblanc_sumry
+								, ubp.pblanc_nm
+								, usp.created_dt
+								, case when cast(to_char(now()  , 'YYYYMMDDHH24MISS') as bigint) - cast(to_char(usp.created_dt  , 'YYYYMMDDHH24MISS') as bigint) <![CDATA[<=]]> 240000
+												then 'Y' else 'N' end as is_new
+								, ubpa.member_id
+							from uspt_slctn_pblanc usp
+									inner join uspt_bsns_pblanc ubp
+										on ubp.pblanc_id = usp.pblanc_id
+									inner join uspt_bsns_pblanc_rcept ubpr
+										on ubpr.pblanc_id  = ubp.pblanc_id
+										and ubpr.rcept_odr = usp.rcept_odr
+									inner join uspt_bsns_pblanc_applcnt ubpa
+										on ubpa.pblanc_id = ubpr.pblanc_id
+										and ubpa.rcept_odr = ubpr.rcept_odr
+									inner join uspt_evl_trget uet
+										on uet.evl_step_id = usp.evl_step_id
+										and uet.sect_id = usp.sect_id
+										and uet.apply_id = ubpa.apply_id
+							where
+								usp.ntce = true
+								and usp.enabled = true
+								and ubpa.member_id = #{memberId}
+							<if test='slctnPblancNm != null and slctnPblancNm != ""'>
+								and usp.slctn_pblanc_nm like concat('%', #{slctnPblancNm}, '%')
+							</if>
+						union all
+							select
+								usp.slctn_pblanc_id
+								, usp.slctn_pblanc_nm
+								, usp.slctn_pblanc_sumry
+								, ubp.pblanc_nm
+								, usp.created_dt
+								, case when cast(to_char(now()  , 'YYYYMMDDHH24MISS') as bigint) - cast(to_char(usp.created_dt  , 'YYYYMMDDHH24MISS') as bigint) <![CDATA[<=]]> 240000
+												then 'Y' else 'N' end as is_new
+								, ubpa.member_id
+							from uspt_slctn_pblanc usp
+									inner join uspt_bsns_pblanc ubp
+										on ubp.pblanc_id = usp.pblanc_id
+									inner join uspt_bsns_pblanc_rcept ubpr
+										on ubpr.pblanc_id  = ubp.pblanc_id
+										and ubpr.rcept_odr = usp.rcept_odr
+									inner join uspt_bsns_pblanc_applcnt ubpa
+										on ubpa.pblanc_id = ubpr.pblanc_id
+										and ubpa.rcept_odr = ubpr.rcept_odr
+									inner join uspt_last_slctn_trget ulst
+										on ulst.evl_last_slctn_id = usp.evl_last_slctn_id
+							where
+								usp.ntce = true
+								and usp.enabled = true
+								and ubpa.member_id = #{memberId}
+							<if test='slctnPblancNm != null and slctnPblancNm != ""'>
+								and usp.slctn_pblanc_nm like concat('%', #{slctnPblancNm}, '%')
+							</if>
+						) sub
+					order by sub.created_dt desc
+					<if test='beginRowNum != null and itemsPerPage != null'>
+						offset #{beginRowNum} -1
+						limit #{itemsPerPage}
+					</if>
+				) main
+			<where>
+				<if test='slctnPblancId != null and slctnPblancId != ""'>
+					main.slctn_pblanc_id = #{slctnPblancId}
+				</if>
+			</where>
+	</select>
+
+	<select id="selectFront" resultType="aicluster.pms.common.dto.FrontSlctnPblancDto">
+		/** UsptSlctnPblancDao.selectFront */
+		select
+			usp.slctn_pblanc_id
+			, usp.slctn_pblanc_nm
+			, usp.slctn_pblanc_sumry
+			, usp.slctn_pblanc_no
+			, usp.slctn_pblanc_day
+			, ubp.pblanc_nm
+			, ub.chrg_dept_nm
+			, ci.member_id
+			, ci.member_nm
+			, ci.position_nm
+			, ci.enc_email
+			, ci.enc_tel_no
+			, usp.attachment_group_id
+		from uspt_slctn_pblanc usp
+				inner join uspt_bsns_pblanc ubp
+					on ubp.pblanc_id = usp.pblanc_id
+				inner join uspt_bsns_pblanc_rcept ubpr
+					on ubpr.pblanc_id  = ubp.pblanc_id
+					and ubpr.rcept_odr = usp.rcept_odr
+				inner join uspt_bsns ub
+					on ub.bsns_cd = ubp.bsns_cd
+				inner join uspt_bsns_charger ubc
+					on ubc.bsns_cd = ub.bsns_cd
+					and ubc.reprsnt_charger = true
+					and ubc.charger_author_cd = 'WRITE'
+				inner join cmmt_insider ci
+					on ci.member_id  = ubc.insider_id
+		where
+			usp.slctn_pblanc_id = #{slctnPblancId}
+			and usp.ntce = true
+			and usp.enabled = true
+	</select>
+
+
+	<select id="selectFrontSlctnList" resultType="aicluster.pms.common.dto.FrontSlctnPblancSlctnDto">
+		/** UsptSlctnPblancDao.selectSlctnList */
+		select
+			sub.receipt_no
+			, row_number() over (order by sub.receipt_no) as rn
+		from (
+				select
+					ubpa.receipt_no
+				from uspt_slctn_pblanc usp
+						inner join uspt_bsns_pblanc ubp
+							on ubp.pblanc_id = usp.pblanc_id
+						inner join uspt_bsns_pblanc_rcept ubpr
+							on ubpr.pblanc_id  = ubp.pblanc_id
+							and ubpr.rcept_odr = usp.rcept_odr
+						inner join uspt_bsns_pblanc_applcnt ubpa
+							on ubpa.pblanc_id = ubpr.pblanc_id
+							and ubpa.rcept_odr = ubpr.rcept_odr
+						inner join uspt_evl_trget uet
+							on uet.evl_step_id = usp.evl_step_id
+							and uet.sect_id = usp.sect_id
+							and uet.apply_id = ubpa.apply_id
+							and uet.slctn = true
+				where
+					usp.ntce = true
+					and usp.enabled = true
+					and usp.slctn_pblanc_id = #{slctnPblancId}
+			union all
+				select
+					ubpa.receipt_no
+				from uspt_slctn_pblanc usp
+						inner join uspt_bsns_pblanc ubp
+							on ubp.pblanc_id = usp.pblanc_id
+						inner join uspt_bsns_pblanc_rcept ubpr
+							on ubpr.pblanc_id  = ubp.pblanc_id
+							and ubpr.rcept_odr = usp.rcept_odr
+						inner join uspt_bsns_pblanc_applcnt ubpa
+							on ubpa.pblanc_id = ubpr.pblanc_id
+							and ubpa.rcept_odr = ubpr.rcept_odr
+						inner join uspt_last_slctn_trget ulst
+							on ulst.evl_last_slctn_id = usp.evl_last_slctn_id
+							and ulst.slctn = true
+				where
+					usp.ntce = true
+					and usp.enabled = true
+					and usp.slctn_pblanc_id = #{slctnPblancId}
+			) sub
+	</select>
+
+</mapper>

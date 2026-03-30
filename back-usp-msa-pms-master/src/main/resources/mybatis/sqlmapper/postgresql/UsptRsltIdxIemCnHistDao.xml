@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aicluster.pms.common.dao.UsptRsltIdxIemCnHistDao">
+
+	<insert id="insert">
+		/** UsptRsltIdxIemCnHistDao.insert */
+		insert into uspt_rslt_idx_iem_cn_hist
+			(
+				rslt_hist_id
+				, rslt_idx_iem_id
+				, rslt_idx_iem_cn_id
+				, rslt_idx_iem_cn
+				, creator_id
+				, created_dt
+			) values (
+				#{rsltHistId}
+				, #{rsltIdxIemId}
+				, #{rsltIdxIemCnId}
+				, #{rsltIdxIemCn}
+				, #{creatorId}
+				, #{createdDt}
+			)
+	</insert>
+
+	<select id="selectList" resultType="aicluster.pms.common.dto.RsltIdxIemCnHistDto">
+		/** UsptRsltIdxIemCnHistDao.selectList */
+		select
+			uriich.rslt_hist_id
+			, uriich.rslt_idx_iem_cn_id
+			, uriic.rslt_idx_detail_iem_id
+			, ubridi.detail_iem_nm
+			, uriic.rslt_idx_std_iem_id
+			, ubrisi.std_iem_nm
+			, uriich.rslt_idx_iem_cn
+			, case when ubrisi.rslt_idx_std_iem_id is null then ubridi.iem_unit_cd  else ubrisi.iem_unit_cd end  as iem_unit_cd
+		from uspt_rslt_idx_iem_cn_hist uriich
+			inner join uspt_rslt_idx_iem_cn uriic
+				on uriic.rslt_idx_iem_cn_id = uriich.rslt_idx_iem_cn_id
+			inner join uspt_bsns_rslt_idx_detail_iem ubridi
+					on ubridi.rslt_idx_detail_iem_id = uriic.rslt_idx_detail_iem_id
+			left outer join uspt_bsns_rslt_idx_std_iem ubrisi
+				on ubrisi.rslt_idx_std_iem_id = uriic.rslt_idx_std_iem_id
+		where
+			uriich.rslt_hist_id = #{rsltHistId}
+			and uriich.rslt_idx_iem_id = #{rsltIdxIemId}
+		order by uriic.rslt_idx_detail_iem_id, uriic.rslt_idx_std_iem_id
+	</select>
+
+</mapper>

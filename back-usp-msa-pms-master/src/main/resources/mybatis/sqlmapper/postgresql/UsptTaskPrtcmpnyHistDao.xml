@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aicluster.pms.common.dao.UsptTaskPrtcmpnyHistDao">
+
+	<!-- ******************************************************************* 과제참여기업변경이력 ********************************************************************** -->
+	<insert id="insert">
+		/** UsptTaskPrtcmpnyHistDao.insert */
+		insert into uspt_task_prtcmpny_hist (
+			 task_partcptn_entrprs_hist_id
+			,task_prtcmpny_info_hist_id
+			,entrps_nm
+			,rspnber_nm
+			,clsf_nm
+			,enc_telno
+			,enc_mbtlnum
+			,enc_email
+			,tlsy_regist_no
+			,member_id
+			,creator_id
+			,created_dt
+		) values (
+			 #{taskPartcptnEntrprsHistId}
+			,#{taskPrtcmpnyInfoHistId}
+			,#{entrpsNm}
+			,#{rspnberNm}
+			,#{clsfNm}
+			,#{encTelno}
+			,#{encMbtlnum}
+			,#{encEmail}
+			,#{tlsyRegistNo}
+			,#{memberId}
+			,#{creatorId}
+			,#{createdDt}
+		)
+	</insert>
+
+	<!-- 과제참여기업변경이력 조회-->
+	<select id="selectList" resultType="aicluster.pms.common.entity.UsptTaskPrtcmpnyHist">
+		/** UsptTaskPrtcmpnyHistDao.selectList */
+	  	 select task_partcptn_entrprs_hist_id
+				 ,task_prtcmpny_info_hist_id
+				 ,entrps_nm
+				 ,rspnber_nm
+				 ,clsf_nm
+				 ,enc_telno
+				 ,enc_mbtlnum
+				 ,enc_email
+				 ,tlsy_regist_no
+				 ,member_id	/*업체 회원ID*/
+				 ,(select cm.member_nm from cmmt_member cm	 where cm.member_id = utph.member_id )	as entrpsNm	/*업체명*/
+		  from uspt_task_prtcmpny_hist utph
+		 where task_prtcmpny_info_hist_id = #{taskPrtcmpnyInfoHistId}
+	</select>
+
+</mapper>

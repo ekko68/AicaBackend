@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aicluster.pms.common.dao.UsptBsnsPblancApplyBhExmntDao">
+
+	<update id="save">
+		/** UsptBsnsPblancApplyBhExmntDao.save */
+		insert into uspt_bsns_pblanc_apply_bh_exmnt
+			(
+				apply_id
+				, bh_exmnt_iem_id
+				, ceck_result_div_cd
+				, creator_id
+				, created_dt
+				, updater_id
+				, updated_dt
+			) values (
+				#{applyId}
+				, #{bhExmntIemId}
+				, #{ceckResultDivCd}
+				, #{creatorId}
+				, #{createdDt}
+				, #{updaterId}
+				, #{updatedDt}
+			)
+			on conflict (apply_id, bh_exmnt_iem_id)
+			do update
+			set ceck_result_div_cd = #{ceckResultDivCd}
+				, updater_id = #{updaterId}
+				, updated_dt = #{updatedDt}
+	</update>
+
+	<select id="selectList" resultType="aicluster.pms.common.dto.ApplyBhExmntDto">
+		/** UsptBsnsPblancApplyBhExmntDao.selectList */
+		select
+			ubbe.bh_exmnt_id
+			, ubbe.bh_exmnt_div_nm
+			, ubbei.bh_exmnt_iem_id
+			, ubbei.bh_exmnt_iem_nm
+			, ubpabe.ceck_result_div_cd
+		from uspt_bsns_bh_exmnt ubbe
+				inner join uspt_bsns_bh_exmnt_iem ubbei
+					on ubbei.bh_exmnt_id = ubbe.bh_exmnt_id
+				left outer join uspt_bsns_pblanc_apply_bh_exmnt ubpabe
+					on ubpabe.bh_exmnt_iem_id = ubbei.bh_exmnt_iem_id
+					and ubpabe.apply_id = #{applyId}
+		where
+			bsns_cd = #{bsnsCd}
+	</select>
+
+</mapper>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aicluster.common.common.dao.LogtDayMemberLogDao">
+
+	<select id="selectDayMemberSummary" resultType="aicluster.common.common.dto.DayMemberSummary">
+		/** LogtDayMemberLogDao.selectDayMemberSummary */
+		select
+			(select count(*) from logt_day_member_log where ymd = to_char(now() - (interval '1 day'), 'yyyymmdd')) as yesterday
+			,(select count(*) from logt_day_member_log where ymd = to_char(now(),'yyyymmdd')) as today
+
+	</select>
+</mapper>

@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aicluster.member.common.dao.CmmtProgramDao">
+
+	<sql id="cmmtProgram_cols">
+		 program_id
+		,program_nm
+		,system_id
+		,http_method
+		,url_pattern
+		,check_order
+		,creator_id
+		,created_dt
+		,updater_id
+		,updated_dt
+	</sql>
+
+	<select id="select"  resultType="aicluster.member.common.entity.CmmtProgram">
+		/** CmmtProgramDao.select */
+		select
+		    <include refid="cmmtProgram_cols" />
+		    ,(select string_agg(ROLE_ID, ',') from cmmt_program_role where PROGRAM_ID = a.program_id) as role_ids
+		from
+		    cmmt_program a
+		where
+			program_id = #{programId}
+	</select>
+
+	<select id="selectList" resultType="aicluster.member.common.entity.CmmtProgram">
+		/** CmmtProgramDao.selectList */
+		select
+		    <include refid="cmmtProgram_cols" />
+		    ,(select string_agg(ROLE_ID, ',') from cmmt_program_role where PROGRAM_ID = a.program_id) as role_ids
+		from
+		    cmmt_program a
+		where
+			1=1
+			and system_id = #{systemId}
+			<if test="programNm != null and !programNm.equals('')">
+		    	and program_nm like '%' || #{programNm} || '%'
+		    </if>
+		    <if test="urlPattern != null and !urlPattern.equals('')">
+		    	and url_pattern like '%' || #{urlPattern} || '%'
+		    </if>
+	</select>
+
+	<select id="selectByName" resultType="aicluster.member.common.entity.CmmtProgram">
+		/** CmmtProgramDao.selectByName */
+		select
+		    <include refid="cmmtProgram_cols" />
+		    ,(select string_agg(ROLE_ID, ',') from cmmt_program_role where PROGRAM_ID = a.program_id) as role_ids
+		from
+		    cmmt_program a
+		where
+			system_id = #{systemId}
+			and program_nm = #{programNm}
+	</select>
+
+	<select id="selectByUrlPattern" resultType="aicluster.member.common.entity.CmmtProgram">
+		/** CmmtProgramDao.selectByUrlPattern */
+		select
+		    <include refid="cmmtProgram_cols" />
+		    ,(select string_agg(ROLE_ID, ',') from cmmt_program_role where PROGRAM_ID = a.program_id) as role_ids
+		from
+		    cmmt_program a
+		where
+			system_id = #{systemId}
+			and http_method = #{httpMethod}
+			and url_pattern = #{urlPattern}
+	</select>
+
+	<update id="incCheckOrder">
+		/** CmmtProgramDao.incCheckOrder */
+		update cmmt_program set
+			check_order = check_order + 1
+		where
+			check_order >= #{checkOrder}
+	</update>
+
+	<insert id="insert">
+		/** CmmtProgramDao.insert */
+		insert into cmmt_program (
+		    <include refid="cmmtProgram_cols" />
+		) values (
+		    #{programId}
+			,#{programNm}
+			,#{systemId}
+			,#{httpMethod}
+			,#{urlPattern}
+			,#{checkOrder}
+			,#{creatorId}
+			,#{createdDt}
+			,#{updaterId}
+			,#{updatedDt}
+		)
+	</insert>
+
+	<update id="update">
+		/** CmmtProgramDao.update */
+		update cmmt_program set
+			program_nm   = #{programNm}
+			,system_id	 = #{systemId}
+			,http_method = #{httpMethod}
+			,url_pattern = #{urlPattern}
+			,check_order = #{checkOrder}
+			,creator_id  = #{creatorId}
+			,created_dt  = #{createdDt}
+			,updater_id  = #{updaterId}
+			,updated_dt  = #{updatedDt}
+		where
+			program_id = #{programId}
+	</update>
+
+	<select id="selectByRoleId" resultType="aicluster.member.common.entity.CmmtProgramRole">
+		/** CmmtProgramDao.selectByRoleId */
+        SELECT b.program_id
+             , b.role_id
+             , b.creator_id
+             , b.created_dt
+          FROM cmmt_program a
+          JOIN cmmt_program_role b
+            ON a.program_id = b.program_id
+         WHERE b.role_id = #{roldId}
+	</select>
+
+	<delete id="deleteProgramId">
+		/** CmmtProgramRoleDao.deleteList */
+		delete from
+			cmmt_program
+		where
+			program_id = #{programId}
+	</delete>
+
+	<select id="selectTotalCount" resultType="Long">
+		/** CmmtProgramDao.selectTotalCount */
+		select
+			count(*) as cnt
+		from cmmt_program
+	</select>
+</mapper>

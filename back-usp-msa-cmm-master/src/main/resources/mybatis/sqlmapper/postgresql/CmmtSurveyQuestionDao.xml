@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aicluster.common.common.dao.CmmtSurveyQuestionDao">
+
+	<sql id="cmmtSurveyQuestion_cols">
+		 survey_id
+		,question_id
+		,question_no
+		,question_type
+		,required
+		,question_cn
+	</sql>
+
+	<select id="selectList" resultType="aicluster.common.common.entity.CmmtSurveyQuestion">
+		/** CmmtSurveyQuestionDao.selectList */
+		select
+			<include refid="cmmtSurveyQuestion_cols"/>
+		from
+			cmmt_survey_question
+		where
+			survey_id = #{surveyId}
+		order by
+			question_no
+	</select>
+
+	<select id="select" resultType="aicluster.common.common.entity.CmmtSurveyQuestion">
+		/** CmmtSurveyQuestionDao.select */
+		select
+			<include refid="cmmtSurveyQuestion_cols"/>
+		from
+			cmmt_survey_question
+		where
+			survey_id = #{surveyId}
+			and question_id = #{questionId}
+	</select>
+
+	<select id="selectResultList" resultType="aicluster.common.common.entity.CmmtSurveyQuestion">
+		/** CmmtSurveyQuestionDao.selectResultList */
+		select
+			<include refid="cmmtSurveyQuestion_cols"/>
+			,(	select
+					count(distinct member_id)
+				from
+					cmmt_survey_member_ans
+				where
+					survey_id = sq.survey_id
+					and question_id = sq.question_id
+					and created_dt between
+						to_timestamp(#{beginDay},'YYYYMMDD')
+						and to_timestamp(#{endDay} || '235959', 'YYYYMMDDHH24MISS')
+					) as answerer_cnt
+		from
+			cmmt_survey_question sq
+		where
+			survey_id = #{surveyId}
+		order by
+			question_no
+	</select>
+
+	<delete id="deleteList_surveyId">
+		/** CmmtSurveyQuestionDao.deleteList_surveyId */
+		delete from
+			cmmt_survey_question
+		where
+			survey_id = #{surveyId}
+	</delete>
+
+	<insert id="insertList">
+		/** CmmtSurveyQuestionDao.insertList */
+		insert into cmmt_survey_question (
+			 survey_id
+			,question_id
+			,question_no
+			,question_type
+			,required
+			,question_cn
+		) values
+		<foreach item="item" collection="list" separator=",">
+			(
+				 #{item.surveyId}
+				,#{item.questionId}
+				,#{item.questionNo}
+				,#{item.questionType}
+				,#{item.required}
+				,#{item.questionCn}
+			)
+		</foreach>
+	</insert>
+</mapper>

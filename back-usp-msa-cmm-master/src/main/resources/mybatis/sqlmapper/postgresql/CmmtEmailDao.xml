@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aicluster.common.common.dao.CmmtEmailDao">
+
+	<sql id="cmmtEmail_cols">
+		 email_id
+		,title
+		,article
+		,html
+		,send
+		,send_dt
+		,try_cnt
+		,system_id
+		,created_dt
+	</sql>
+
+	<insert id="insert">
+		/** CmmtEmailDao.insert */
+		insert into cmmt_email (
+			 email_id
+			,title
+			,article
+			,html
+			,send
+			,send_dt
+			,try_cnt
+			,system_id
+			,created_dt
+		) values (
+			 #{emailId}
+			,#{title}
+			,#{article}
+			,#{html}
+			,#{send}
+			,#{sendDt}
+			,#{tryCnt}
+			,#{systemId}
+			,#{createdDt}
+		)
+	</insert>
+
+	<insert id="insertList">
+		/** CmmtEmailDao.insertList */
+		insert into cmmt_email (
+			 email_id
+			,title
+			,article
+			,html
+			,send
+			,send_dt
+			,try_cnt
+			,system_id
+			,created_dt
+		) values
+		<foreach item="item" collection="list" separator=",">
+			(
+				 #{item.emailId}
+				,#{item.title}
+				,#{item.article}
+				,#{item.html}
+				,#{item.send}
+				,#{item.sendDt}
+				,#{item.tryCnt}
+				,#{item.systemId}
+				,#{item.createdDt}
+			)
+		</foreach>
+	</insert>
+
+	<update id="update">
+		/** CmmtEmailDao.update */
+		update cmmt_email set
+			 title      = #{title}
+			,article    = #{article}
+			,html       = #{html}
+			,send       = #{send}
+			,send_dt    = #{sendDt}
+			,try_cnt    = #{tryCnt}
+			,system_id  = #{systemId}
+			,created_dt = #{createdDt}
+		where
+			email_id = #{emailId}
+	</update>
+
+	<delete id="delete">
+		/** CmmtEmailDao.delete */
+		delete from
+			cmmt_email
+		where
+			email_id = #{emailId}
+	</delete>
+
+	<select id="select" resultType="aicluster.common.common.entity.CmmtEmail">
+		/** CmmtEmailDao.select */
+		select
+			<include refid="cmmtEmail_cols"/>
+		from
+			cmmt_email
+		where
+			email_id = #{emailId}
+	</select>
+
+	<select id="selectList_notSent" resultType="aicluster.common.common.entity.CmmtEmail">
+		/** CmmtEmailDao.selectList_notSent */
+		select
+			<include refid="cmmtEmail_cols"/>
+		from
+			cmmt_email
+		where
+			<![CDATA[
+			send = false
+			and created_dt >= #{fromDt}
+			and try_cnt < #{maxTryCnt}
+			]]>
+		order by
+			created_dt
+	</select>
+
+	<delete id="delete_old">
+		/** CmmtEmailDao.delete_old */
+		delete from
+			cmmt_email
+		where
+			<![CDATA[
+			created_dt <= #{dtime}
+			]]>
+	</delete>
+</mapper>

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aicluster.pms.common.dao.UsptEvlIemResultDao">
+
+	<insert id="insert">
+		/*UsptEvlIemResultDao.insert*/
+		insert into uspt_evl_iem_result (
+			   evl_iem_result_id
+			 , evl_result_id
+			 , evl_iem_id
+			 , evl_score
+			 , evl_cn
+			 , creator_id
+			 , created_dt
+			 , updater_id
+			 , updated_dt
+		) values (
+			   #{evlIemResultId}
+			 , #{evlResultId}
+			 , #{evlIemId}
+			 , #{evlScore}
+			 , #{evlCn}
+			 , #{creatorId}
+			 , #{createdDt}
+			 , #{updaterId}
+			 , #{updatedDt}
+		)
+	</insert>
+
+	<select id="selectList" resultType="aicluster.pms.common.entity.UsptEvlIemResult">
+		/*UsptEvlIemResultDao.selectList*/
+		select evl_iem_result_id
+			 , evl_result_id
+			 , evl_iem_id
+			 , evl_score
+			 , evl_cn
+			 , creator_id
+			 , created_dt
+			 , updater_id
+			 , updated_dt
+		 from uspt_evl_iem_result
+		where 1 = 1
+		<if test='evlIemResultId != null and evlIemResultId != ""'>
+		  and evl_iem_result_id = #{evlIemResultId}
+		</if>
+	</select>
+
+	<update id="update">
+		/*UsptEvlIemResultDao.update*/
+		update uspt_evl_iem_result
+		   set evl_score                 = #{evlScore}
+			 , evl_cn                    = #{evlCn}
+			 , updater_id                = #{updaterId}
+			 , updated_dt                = #{updatedDt}
+		where evl_iem_result_id = #{evlIemResultId}
+	</update>
+
+</mapper>

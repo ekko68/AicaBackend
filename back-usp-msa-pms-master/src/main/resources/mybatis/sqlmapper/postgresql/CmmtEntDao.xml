@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aicluster.pms.common.dao.CmmtEntDao">
+
+
+	<select id="select" resultType="aicluster.pms.common.entity.CmmtEnt">
+		/** CmmtEntDao.select */
+		select
+			member_id
+			,cmpny_type_cd
+			,fn_cmm_get_code_nm('CMPNY_TYPE',cmpny_type_cd)
+			,indust_realm_cd
+			,fn_cmm_get_code_nm('INDUST_REALM',indust_realm_cd)
+			,fond_day
+			,emply_cnt
+			,resdng_nmpr
+			,empmn_prearnge_nmpr
+			,induty
+			,main_induty
+			,main_tchnlgy_product
+			,zip
+			,adres
+			,enc_fxnum
+			,enc_reprsnt_telno
+			,enc_ceo_telno
+			,enc_ceo_email
+			,new_fntn_plan_cd
+			,fn_cmm_get_code_nm('NEW_FNTN_PLAN',new_fntn_plan_cd)
+			,fond_plan_cd
+			,fn_cmm_get_code_nm('FOND_PLAN',fond_plan_cd)
+			,creator_id
+			,created_dt
+			,updater_id
+			,updated_dt
+		from cmmt_ent
+		where
+			member_id = #{memeberId}
+	</select>
+</mapper>

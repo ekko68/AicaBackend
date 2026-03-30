@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aicluster.common.common.dao.CmmtQnaDao">
+
+	<sql id="cmmtQna_cols">
+		qna_id
+		,qna_nm
+		,system_id
+		,article_cnt
+		,category
+		,category_code_group
+		,attachable
+		,attachment_size
+		,attachment_ext
+		,enabled
+		,creator_id
+		,created_dt
+		,updater_id
+		,updated_dt
+	</sql>
+
+	<select id="select" resultType="aicluster.common.common.entity.CmmtQna">
+		/** CmmtQnaDao.select */
+		select
+			<include refid="cmmtQna_cols" />
+		from cmmt_qna
+		where
+			qna_id = #{qnaId}
+	</select>
+
+	<select id="selectList" resultType="aicluster.common.common.entity.CmmtQna">
+		/** CmmtQnaDao.selectList */
+		select
+			<include refid="cmmtQna_cols" />
+		from cmmt_qna
+		where
+			1=1
+			<if test='systemId != null and systemId != ""'>
+				and system_id = #{systemId}
+			</if>
+			<if test='qnaId != null and qnaId != ""'>
+				and qna_id = #{qnaId}
+			</if>
+			<if test='qnaNm != null and qnaNm != ""'>
+				and qna_nm like '%' || #{qnaNm} || '%'
+			</if>
+			<if test='enabled != null'>
+				and enabled = #{enabled}
+			</if>
+		order by
+			qna_id
+	</select>
+
+	<insert id="insert">
+		/** CmmtQnaDao.insert */
+		insert into cmmt_qna (
+			 qna_id
+			,qna_nm
+			,system_id
+			,article_cnt
+			,category
+			,category_code_group
+			,attachable
+			,attachment_size
+			,attachment_ext
+			,enabled
+			,creator_id
+			,created_dt
+			,updater_id
+			,updated_dt
+		) values (
+			 #{qnaId}
+			,#{qnaNm}
+			,#{systemId}
+			,#{articleCnt}
+			,#{category}
+			,#{categoryCodeGroup}
+			,#{attachable}
+			,#{attachmentSize}
+			,#{attachmentExt}
+			,#{enabled}
+			,#{creatorId}
+			,#{createdDt}
+			,#{updaterId}
+			,#{updatedDt}
+		)
+	</insert>
+
+	<update id="update">
+		/** CmmtQnaDao.update */
+		update cmmt_qna set
+			 qna_nm              = #{qnaNm}
+			,system_id           = #{systemId}
+			,article_cnt         = #{articleCnt}
+			,category            = #{category}
+			,category_code_group = #{categoryCodeGroup}
+			,attachable          = #{attachable}
+			,attachment_size     = #{attachmentSize}
+			,attachment_ext      = #{attachmentExt}
+			,enabled             = #{enabled}
+			,creator_id          = #{creatorId}
+			,created_dt          = #{createdDt}
+			,updater_id          = #{updaterId}
+			,updated_dt          = #{updatedDt}
+		where
+			qna_id = #{qnaId}
+	</update>
+
+	<delete id="delete">
+		/** CmmtQnaDao.delete */
+		delete from cmmt_qna
+		where
+			qna_id = #{qnaId}
+	</delete>
+</mapper>

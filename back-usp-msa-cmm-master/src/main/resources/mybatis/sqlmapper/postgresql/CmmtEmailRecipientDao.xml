@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aicluster.common.common.dao.CmmtEmailRecipientDao">
+
+	<sql id="cmmtEmailRecipient_cols">
+		email_id
+		,email
+		,recipient_nm
+	</sql>
+
+	<insert id="insert">
+		/** CmmtEmailRecipientDao.insert */
+		insert into cmmt_email_recipient (
+			 email_id
+			,email
+			,recipient_nm
+		) values (
+			 #{emailId}
+			,#{email}
+			,#{recipientNm}
+		)
+	</insert>
+
+	<insert id="insertList">
+		/** CmmtEmailRecipientDao.insertList */
+		insert into cmmt_email_recipient (
+			 email_id
+			,email
+			,recipient_nm
+		) values
+		<foreach item="item" collection="list" separator=",">
+			(
+				 #{item.emailId}
+				,#{item.email}
+				,#{item.recipientNm}
+			)
+		</foreach>
+	</insert>
+
+	<delete id="deleteList">
+		/** CmmtEmailRecipientDao.deleteList */
+		delete from
+			cmmt_email_recipient
+		where
+			email_id = #{emailId}
+	</delete>
+
+	<select id="selectList" resultType="aicluster.common.common.entity.CmmtEmailRecipient">
+		/** CmmtEmailRecipientDao.selectList */
+		select
+			<include refid="cmmtEmailRecipient_cols"/>
+		from
+			cmmt_email_recipient
+		where
+			email_id = #{emailId}
+	</select>
+
+</mapper>

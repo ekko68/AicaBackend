@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aicluster.common.common.dao.CmmtHldyExclDao">
+
+	<sql id="cmmtHldyExcl_cols">
+		 ymd
+		,ymd_nm
+		,excl_reason
+	</sql>
+
+	<select id="selectlist" resultType="aicluster.common.common.entity.CmmtHldyExcl">
+		/** CmmtHldyExclDao.selectList */
+		select
+			<include refid="cmmtHldyExcl_cols" />
+		from
+			cmmt_hldy_excl
+		where
+			substring(ymd, 1, 4) = #{year}
+			<if test="ymdNm != null and ymdNm != ''">
+				and ymd_nm = #{ymdNm}
+			</if>
+	</select>
+
+	<insert id="insert">
+		/** CmmtHldyExclDao.insert */
+		insert into cmmt_hldy_excl (
+			 ymd
+			,ymd_nm
+			,excl_reason
+		) values (
+			 #{ymd}
+			,#{ymdNm}
+			,#{exclReason}
+		)
+	</insert>
+
+	<select id="select" resultType="aicluster.common.common.entity.CmmtHldyExcl">
+		/** CmmtHldyExclDao.select */
+		select
+			<include refid="cmmtHldyExcl_cols" />
+			from
+				cmmt_hldy_excl
+			where
+				ymd = #{ymd}
+	</select>
+
+	<update id="update" >
+		/** CmmtHldyExclDao.update */
+		update cmmt_hldy_excl set
+			 ymd 		= #{ymd}
+			,ymd_nm 	= #{ymdNm}
+			,excl_reason  = #{exclReason}
+		where
+			ymd = #{ymd}
+	</update>
+
+	<insert id="delete" >
+		/** CmmtHldyExclDao.delete */
+		delete from
+			cmmt_hldy_excl
+		where
+			ymd = #{ymd}
+	</insert>
+</mapper>

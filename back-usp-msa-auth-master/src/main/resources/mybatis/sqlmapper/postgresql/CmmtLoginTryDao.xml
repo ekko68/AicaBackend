@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aicluster.member.common.dao.CmmtLoginTryDao">
+
+	<insert id="save">
+		/** CmmtLoginTryDao.save */
+		insert into cmmt_login_try (
+			 member_id
+			,member_ip
+			,try_cnt
+			,updated_dt
+		) values (
+			 #{memberId}
+			,#{memberIp}
+			,1
+			,now()
+		)
+		on conflict (member_id, member_ip)
+		do update set
+			 try_cnt    = cmmt_login_try.try_cnt + 1
+			,updated_dt = now()
+	</insert>
+
+	<select id="select" resultType="aicluster.member.common.entity.CmmtLoginTry">
+		/** CmmtLoginTryDao.select */
+		select
+			 member_id
+			,member_ip
+			,try_cnt
+			,updated_dt
+		from cmmt_login_try
+		where
+			member_id = #{memberId}
+			and member_ip = #{memberIp}
+	</select>
+
+	<delete id="delete">
+		/** CmmtLoginTryDao.delete */
+		delete from cmmt_login_try
+		where
+			member_id = #{memberId}
+			and member_ip = #{memberIp}
+	</delete>
+
+	<delete id="deleteOld">
+	<![CDATA[
+		/** CmmtLoginTryDao.deleteOld */
+		delete from cmmt_login_try
+		where
+			updated_dt < (now() - interval '10 minute')
+	]]>
+	</delete>
+</mapper>

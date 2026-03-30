@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aicluster.member.common.dao.CmmtCodeDao">
+
+	<sql id="cmmtCode_cols">
+		code_group
+		,code
+		,code_nm
+		,remark
+		,code_type
+		,enabled
+		,sort_order
+		,creator_id
+		,created_dt
+		,updater_id
+		,updated_dt
+	</sql>
+
+	<insert id="insert">
+		/** CmmtCodeDao.insert */
+		insert into cmmt_code (
+			code_group
+			,code
+			,code_nm
+			,remark
+			,code_type
+			,enabled
+			,sort_order
+			,creator_id
+			,created_dt
+			,updater_id
+			,updated_dt
+		) values (
+			upper(#{codeGroup})
+			,upper(#{code})
+			,#{codeNm}
+			,#{remark}
+			,upper(#{codeType})
+			,#{enabled}
+			,#{sortOrder}
+			,#{creatorId}
+			,#{createdDt}
+			,#{updaterId}
+			,#{updatedDt}
+		)
+	</insert>
+
+	<select id="select" resultType="aicluster.member.common.entity.CmmtCode">
+		/** CmmtCodeDao.select */
+		select
+			<include refid="cmmtCode_cols"/>
+		from cmmt_code
+		where
+			code_group = upper(#{codeGroup})
+			and code = upper(#{code})
+	</select>
+
+	<select id="selectList" resultType="aicluster.member.common.entity.CmmtCode">
+		/** CmmtCodeDao.selectList */
+		select
+			<include refid="cmmtCode_cols"/>
+		from cmmt_code
+		where
+			code_group = upper(#{codeGroup})
+		order by
+			sort_order
+	</select>
+
+	<select id="selectList_enabled" resultType="aicluster.member.common.entity.CmmtCode">
+		/** CmmtCodeDao.selectList_enabled */
+		select
+			<include refid="cmmtCode_cols"/>
+		from cmmt_code
+		where
+			code_group = upper(#{codeGroup})
+			and enabled = true
+			<if test='codeType != null and codeType != ""'>
+				and code_type = upper(#{codeType})
+			</if>
+		order by
+			sort_order
+	</select>
+
+	<update id="update">
+		/** CmmtCodeDao.update */
+		update cmmt_code set
+			code_nm    	= #{codeNm}
+			,remark    	= #{remark}
+			,code_Type  = upper(#{codeType})
+			,enabled   	= #{enabled}
+			,sort_order = #{sortOrder}
+		where
+			code_group = upper(#{codeGroup})
+			and code = upper(#{code})
+	</update>
+
+	<delete id="delete">
+		/** CmmtCodeDao.delete */
+		delete from cmmt_code
+		where
+			code_group = upper(#{codeGroup})
+			and code = upper(#{code})
+	</delete>
+</mapper>

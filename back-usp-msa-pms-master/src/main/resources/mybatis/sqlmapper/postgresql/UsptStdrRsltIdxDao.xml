@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aicluster.pms.common.dao.UsptStdrRsltIdxDao">
+
+	<insert id="insert">
+		/** UsptStdrRsltIdxDao.insert */
+		insert into uspt_stdr_rslt_idx
+								(
+									rslt_idx_id
+									, stdr_bsns_cd
+									, rslt_idx_nm
+									, std_idx
+									, rslt_idx_type_cd
+									, creator_id
+									, created_dt
+									, updater_id
+									, updated_dt
+								)
+						values	(
+									#{rsltIdxId}
+									, #{stdrBsnsCd}
+									, #{rsltIdxNm}
+									, #{stdIdx}
+									, #{rsltIdxTypeCd}
+									, #{creatorId}
+									, #{createdDt}
+									, #{updaterId}
+									, #{updatedDt}
+								)
+	</insert>
+
+	<update id="update">
+		/** UsptStdrRsltIdxDao.update */
+		update uspt_stdr_rslt_idx
+		set
+			updater_id		= #{updaterId}
+			, updated_dt	= #{updatedDt}
+			, std_idx		= #{stdIdx}
+			, rslt_idx_nm	= #{rsltIdxNm}
+		where
+			rslt_idx_id = #{rsltIdxId}
+			and stdr_bsns_cd = #{stdrBsnsCd}
+	</update>
+
+	<delete id="delete">
+		/** UsptStdrRsltIdxDao.delete */
+		delete from uspt_stdr_rslt_idx
+		where
+			rslt_idx_id = #{rsltIdxId}
+			and stdr_bsns_cd = #{stdrBsnsCd}
+	</delete>
+
+	<resultMap id="rsltIdxMap" type="aicluster.pms.common.entity.UsptStdrRsltIdx">
+		<collection property="detailIemList" column="{rsltIdxId = rslt_idx_id}"
+					ofType="aicluster.pms.common.entity.UsptStdrRsltIdxDetailIem"
+					select="selectRsltIdxDetailIemList"></collection>
+		<collection property="stdIemList" column="{rsltIdxId = rslt_idx_id}"
+					ofType="aicluster.pms.common.entity.UsptStdrRsltIdxStdIem"
+					select="selectRsltIdxStdIemList"></collection>
+	</resultMap>
+
+
+	<select id="selectList" resultMap="rsltIdxMap">
+		/** UsptStdrRsltIdxDao.selectList */
+		select
+			stdr_bsns_cd
+			, rslt_idx_id
+			, rslt_idx_nm
+			, std_idx
+			, rslt_idx_type_cd
+		from uspt_stdr_rslt_idx
+		where
+			stdr_bsns_cd = #{stdrBsnsCd}
+	</select>
+
+	<select id="selectRsltIdxDetailIemList" resultType="aicluster.pms.common.entity.UsptStdrRsltIdxDetailIem">
+		/** UsptStdrRsltIdxDao.selectRsltIdxIemList */
+		select
+			rslt_idx_detail_iem_id
+			, detail_iem_nm
+			, iem_unit_cd
+		from uspt_stdr_rslt_idx_detail_iem
+		where
+			rslt_idx_id = #{rsltIdxId}
+	</select>
+
+	<select id="selectRsltIdxStdIemList" resultType="aicluster.pms.common.entity.UsptStdrRsltIdxStdIem">
+		/** UsptStdrRsltIdxDao.selectStdIdxIemList */
+		select
+			rslt_idx_std_iem_id
+			, std_iem_nm
+			, iem_unit_cd
+		from uspt_stdr_rslt_idx_std_iem
+		where
+			rslt_idx_id = #{rsltIdxId}
+	</select>
+</mapper>

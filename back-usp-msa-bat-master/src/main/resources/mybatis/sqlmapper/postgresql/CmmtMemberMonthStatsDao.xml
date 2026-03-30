@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aicluster.batch.common.dao.CmmtMemberMonthStatsDao">
+
+	<update id="upsert">
+		/** CmmtMemberDayStatsDao.upsert */
+		insert into cmmt_member_month_stats (
+			stats_ym
+			,member_type
+			,total_mbr_cnt
+			,join_mbr_cnt
+			,secession_mbr_cnt
+			,dormant_mbr_cnt
+			,black_mbr_cnt
+			,created_dt
+		)
+		select
+			substring(stats_ymd, 1, 6) as stats_ym
+			,member_type
+			,(
+				select (total_mbr_cnt)
+				from cmmt_member_day_stats cmds
+				where
+					stats_ymd = (
+						select max(stats_ymd)
+						from cmmt_member_day_stats
+						where
+							stats_ymd like #{ym} || '%'
+							and member_type = a.member_type
+					)
+					and member_type = a.member_type
+			)
+			,sum(join_mbr_cnt)
+			,sum(secession_mbr_cnt)
+			,sum(dormant_mbr_cnt)
+			,sum(black_mbr_cnt)
+			,now()
+		from
+			cmmt_member_day_stats a
+		where
+			stats_ymd like #{ym} || '%'
+		group by
+			substring(stats_ymd, 1, 6)
+			,member_type
+		on conflict (stats_ym, member_type)
+		do update set
+			 total_mbr_cnt     = excluded.total_mbr_cnt
+			,join_mbr_cnt      = excluded.join_mbr_cnt
+			,secession_mbr_cnt = excluded.secession_mbr_cnt
+			,dormant_mbr_cnt   = excluded.dormant_mbr_cnt
+			,black_mbr_cnt     = excluded.black_mbr_cnt
+			,created_dt        = excluded.created_dt
+	</update>
+
+</mapper>

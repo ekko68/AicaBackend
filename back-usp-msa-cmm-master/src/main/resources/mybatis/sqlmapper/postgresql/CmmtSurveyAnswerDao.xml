@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aicluster.common.common.dao.CmmtSurveyAnswerDao">
+
+	<sql id="cmmtSurveyAnswer_cols">
+		 survey_id
+		,question_id
+		,answer_id
+		,answer_no
+		,answer_cn
+	</sql>
+
+	<select id="selectList_surveyId" resultType="aicluster.common.common.entity.CmmtSurveyAnswer">
+		/** CmmtSurveyAnswerDao.selectList_surveyId */
+		select
+			<include refid="cmmtSurveyAnswer_cols"/>
+		from
+			cmmt_survey_answer
+		where
+			survey_id = #{surveyId}
+		order by
+			question_id
+			,answer_no
+	</select>
+
+	<delete id="deleteList_surveyId">
+		/** CmmtSurveyAnswerDao.deleteList_surveyId */
+		delete from
+			cmmt_survey_answer
+		where
+			survey_id = #{surveyId}
+	</delete>
+
+	<insert id="insertList">
+		/** CmmtSurveyAnswerDao.insertList */
+		insert into cmmt_survey_answer (
+			 survey_id
+			,question_id
+			,answer_id
+			,answer_no
+			,answer_cn
+		) values
+		<foreach item="item" collection="list" separator=",">
+			(
+				 #{item.surveyId}
+				,#{item.questionId}
+				,#{item.answerId}
+				,#{item.answerNo}
+				,#{item.answerCn}
+			)
+		</foreach>
+	</insert>
+</mapper>

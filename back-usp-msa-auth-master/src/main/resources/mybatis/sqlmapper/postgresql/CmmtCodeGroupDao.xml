@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aicluster.member.common.dao.CmmtCodeGroupDao">
+
+	<sql id="cmmtCodeGroup_cols">
+		code_group
+		,code_group_nm
+		,remark
+		,enabled
+		,creator_id
+		,created_dt
+		,updater_id
+		,updated_dt
+	</sql>
+
+	<select id="selectList" resultType="aicluster.member.common.entity.CmmtCodeGroup">
+		/** CmmtCodeGroup.selectList */
+		select
+			<include refid="cmmtCodeGroup_cols"/>
+		from cmmt_code_group
+		where
+			1=1
+			<if test='codeGroup != null and codeGroup != ""'>
+				and code_group like '%' || upper(#{codeGroup}) || '%'
+			</if>
+			<if test='codeGroupNm != null and codeGroupNm != ""'>
+				and code_group_nm like '%' || upper(#{codeGroupNm}) || '%'
+			</if>
+	</select>
+
+	<select id="select" resultType="aicluster.member.common.entity.CmmtCodeGroup">
+		/** CmmtCodeGroupDao.select */
+		select
+			<include refid="cmmtCodeGroup_cols"/>
+		from cmmt_code_group
+		where
+			code_group = upper(#{codeGroup})
+	</select>
+
+	<insert id="insert">
+		/** CmmtCodeGroupDao.insert */
+		insert into cmmt_code_group (
+			code_group
+			,code_group_nm
+			,remark
+			,enabled
+			,creator_id
+			,created_dt
+			,updater_id
+			,updated_dt
+		) values (
+			upper(#{codeGroup})
+			,upper(#{codeGroupNm})
+			,#{remark}
+			,#{enabled}
+			,#{creatorId}
+			,#{createdDt}
+			,#{updaterId}
+			,#{updatedDt}
+		)
+	</insert>
+
+	<update id="update">
+		/** CmmtCodeGroupDao.update */
+		update cmmt_code_group set
+			code_group_nm = upper(#{codeGroupNm})
+			,remark       = #{remark}
+			,enabled      = #{enabled}
+			,creator_id   = #{creatorId}
+			,created_dt   = #{createdDt}
+			,updater_id   = #{updaterId}
+			,updated_dt   = #{updatedDt}
+		where
+			code_group = upper(#{codeGroup})
+	</update>
+
+	<delete id="delete">
+		/** CmmtCodeGroupDao.delete */
+		delete from cmmt_code_group
+		where
+			code_group = upper(#{codeGroup})
+	</delete>
+</mapper>

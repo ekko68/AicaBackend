@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aicluster.common.common.dao.CmmtSurveyMemberAnsDao">
+
+	<sql id="cmmtSurveyMemberAns_cols">
+		 member_ans_id
+		,survey_id
+		,question_id
+		,answer_id
+		,member_id
+		,short_answer
+		,created_dt
+	</sql>
+
+	<insert id="insertList">
+		/** CmmtSurveyMemberAnsDao.insertList */
+		insert into cmmt_survey_member_ans (
+			 member_ans_id
+			,survey_id
+			,question_id
+			,answer_id
+			,member_id
+			,short_answer
+			,created_dt
+		) values
+		<foreach item="item" collection="list" separator=",">
+			(
+				 #{item.memberAnsId}
+				,#{item.surveyId}
+				,#{item.questionId}
+				,#{item.answerId}
+				,#{item.memberId}
+				,#{item.shortAnswer}
+				,#{item.createdDt}
+			)
+		</foreach>
+	</insert>
+
+	<select id="existsSurveyAns" resultType="Boolean">
+		/** CmmtSurveyMemberAnsDao.existsSurveyAns */
+		select
+			exists (
+				select
+					member_ans_id
+				from
+					cmmt_survey_member_ans
+				where
+					survey_id =  #{surveyId}
+			)
+	</select>
+
+	<select id="selectCmmvUserList_answerer" resultType="aicluster.common.common.entity.CmmvUser">
+		/** CmmtSurveyMemberAnsDao.selectCmmvUserList_answerer */
+		select
+			member_id
+			,member_nm
+			,authority_id
+			,member_st
+			,member_type
+			,enc_email
+			,enc_mobile_no
+		from
+			cmmv_user
+		where
+			member_id in (
+				select
+					member_id
+				from
+					cmmt_survey_member_ans
+				where
+					survey_id = #{surveyId}
+					and created_dt between
+						to_timestamp(#{beginDay} || '000000', 'YYYYMMDDHH24MISS')
+						and to_timestamp(#{endDay} || '235959', 'YYYYMMDDHH24MISS')
+			)
+	</select>
+
+	<select id="existsMember" resultType="Boolean">
+		/** CmmtSurveyMemberAnsDao.existsMember */
+		select
+			exists (
+				select
+					member_ans_id
+				from
+					cmmt_survey_member_ans
+				where
+					survey_id =  #{surveyId}
+					and member_id = #{memberId}
+			)
+	</select>
+
+	<select id="existsMember_day" resultType="Boolean">
+		/** CmmtSurveyMemberAnsDao.existsMember_day */
+		select
+			exists (
+				select
+					member_ans_id
+				from
+					cmmt_survey_member_ans
+				where
+					survey_id = #{surveyId}
+					and member_id = #{memberId}
+					and created_dt between
+						to_timestamp(#{day} || '000000', 'YYYYMMDDHH24MISS')
+						and to_timestamp(#{day} || '235959', 'YYYYMMDDHH24MISS')
+			)
+	</select>
+
+	<select id="selectResultAnswerList" resultType="aicluster.common.common.dto.ResultAnswerDto">
+		/** CmmtSurveyMemberAnsDao.selectResultAnswerList */
+		select
+			 a.survey_id
+			,a.question_id
+			,a.answer_id
+			,a.answer_no
+			,u.short_answer
+			,sum(
+				case when u.member_id is null then
+					0
+				else
+					1
+				end
+			) as cnt
+		from
+			cmmt_survey_answer a
+			left join (
+				select
+					*
+				from
+					cmmt_survey_member_ans
+				where
+					created_dt between to_timestamp(#{beginDay},'YYYYMMDD')
+						and to_timestamp( #{endDay} || '235959', 'YYYYMMDDHH24MISS')
+					) U
+				on (
+					a.survey_id = u.survey_id
+					and a.question_id = u.question_id
+					and a.answer_id = u.answer_id
+				)
+		where
+			a.survey_id = #{surveyId}
+		group by
+			a.survey_id,
+			a.question_id,
+			a.answer_id,
+			a.answer_no,
+			u.short_answer
+	</select>
+</mapper>

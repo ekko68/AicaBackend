@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aicluster.batch.common.dao.UsptMvnFcDao">
+
+	<sql id="usptMvnFc_columns">
+		mvn_fc_id
+		, mvn_st
+		, mvn_st_dt
+		, cur_occupant_id
+		, updater_id
+		, updated_dt
+	</sql>
+
+	<select id="select" resultType="aicluster.batch.common.entity.UsptMvnFc">
+		/** UsptMvnFcDao.select */
+		select
+			<include refid="usptMvnFc_columns" />
+		from uspt_mvn_fc
+		where
+			mvn_fc_id = #{mvnFcId}
+	</select>
+
+	<update id="update">
+		/** UsptMvnFcDao.update */
+		update uspt_mvn_fc set
+			mvn_st                    = #{mvnSt}
+			,mvn_st_dt                 = #{mvnStDt}
+			,cur_occupant_id           = #{curOccupantId}
+			,updater_id                = #{updaterId}
+			,updated_dt                = #{updatedDt}
+		where
+			mvn_fc_id = #{mvnFcId}
+    </update>
+
+</mapper>

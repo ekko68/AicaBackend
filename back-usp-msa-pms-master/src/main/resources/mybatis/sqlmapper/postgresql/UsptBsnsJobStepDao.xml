@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aicluster.pms.common.dao.UsptBsnsJobStepDao">
+
+	<insert id="insert">
+		/** UsptBsnsJobStepDao.insert */
+		insert into uspt_bsns_job_step
+								(
+									bsns_cd
+									, job_step_cd
+									, creator_id
+									, created_dt
+								)
+						values	(
+									#{bsnsCd}
+									, #{jobStepCd}
+									, #{creatorId}
+									, #{createdDt}
+								)
+	</insert>
+
+	<insert id="insertList">
+		/** UsptBsnsJobStepDao.insertList */
+		insert into uspt_bsns_job_step
+			(
+				bsns_cd
+				, job_step_cd
+				, creator_id
+				, created_dt
+			) values
+		<foreach item="item" collection="list" separator=",">
+			(
+				#{item.bsnsCd}
+				, #{item.jobStepCd}
+				, #{item.creatorId}
+				, #{item.createdDt}
+			)
+		</foreach>
+	</insert>
+
+
+	<delete id="deleteAll">
+		/** UsptBsnsJobStepDao.deleteAll */
+		delete from uspt_bsns_job_step
+		where
+			bsns_cd = #{bsnsCd}
+	</delete>
+
+
+	<select id="selectViewList" resultType="aicluster.pms.common.dto.JobStepDto">
+		/** UsptBsnsJobStepDao.selectViewList */
+		select
+			cc.code				as job_step_cd
+			, cc.code_nm		as job_step_nm
+			, case when ubjs.bsns_cd is null then false else true end as is_checked
+		from cmmt_code cc
+			left outer join uspt_bsns_job_step ubjs
+				on ubjs.job_step_cd = cc.code
+				and ubjs.bsns_cd = #{bsnsCd}
+		where
+			cc.code_group = '${@aicluster.pms.common.util.Code@JS_CODE_GROUP}'
+			and cc.enabled = true
+		order by cc.code_type desc, cc.sort_order
+	</select>
+
+</mapper>

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aicluster.pms.common.dao.UsptStdrJobStepDao">
+
+	<insert id="insert">
+		/** UsptStdrJobStepDao.insert */
+		insert into uspt_stdr_job_step
+								(
+									stdr_bsns_cd
+									, job_step_cd
+									, creator_id
+									, created_dt
+								)
+						values	(
+									#{stdrBsnsCd}
+									, #{jobStepCd}
+									, #{creatorId}
+									, #{createdDt}
+								)
+	</insert>
+
+
+	<delete id="deleteAll">
+		/** UsptStdrJobStepDao.deleteAll */
+		delete from uspt_stdr_job_step
+		where
+			stdr_bsns_cd = #{stdrBsnsCd}
+	</delete>
+
+
+	<select id="selectViewList" resultType="aicluster.pms.common.dto.JobStepDto">
+		/** UsptStdrJobStepDao.selectViewList */
+		select
+			cc.code				as job_step_cd
+			, cc.code_nm		as job_step_nm
+			, case when usjs.stdr_bsns_cd is null then false else true end as is_checked
+		from cmmt_code cc
+			left outer join uspt_stdr_job_step usjs
+				on usjs.job_step_cd = cc.code
+				and usjs.stdr_bsns_cd = #{stdrBsnsCd}
+		where
+			cc.code_group = '${@aicluster.pms.common.util.Code@JS_CODE_GROUP}'
+			and cc.enabled = true
+		order by cc.code_type desc, cc.sort_order
+	</select>
+
+	<select id="selectList" resultType="aicluster.pms.common.entity.UsptStdrJobStep">
+		/** UsptStdrJobStepDao.selectList */
+		select
+			stdr_bsns_cd
+			, job_step_cd
+		from uspt_stdr_job_step
+		where
+			stdr_bsns_cd = #{stdrBsnsCd}
+	</select>
+</mapper>

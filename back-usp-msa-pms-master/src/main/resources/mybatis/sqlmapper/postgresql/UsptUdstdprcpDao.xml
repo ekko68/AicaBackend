@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aicluster.pms.common.dao.UsptUdstdprcpDao">
+
+	<select id="selectList" resultType="aicluster.pms.common.entity.UsptUdstdprcp">
+		/** UsptUdstdprcpDao.selectList */
+		select udstdprcp_id
+			 , evl_plan_id
+			 , nm
+			 , gender_cd
+			 , fn_cmm_get_code_nm('GENDER', gender_cd) as gender_nm
+			 , instt_nm
+			 , last_schul
+			 , subjct
+			 , enc_brthdy
+			 , enc_mbtlnum
+			 , bizrno
+			 , creator_id
+			 , created_dt
+			 , updater_id
+			 , updated_dt
+		 from uspt_udstdprcp
+		where 1 = 1
+		  and evl_plan_id = #{evlPlanId}
+			<if test='udstdprcpId != null and udstdprcpId != ""'>
+				and udstdprcp_id = #{udstdprcpId}
+			</if>
+	</select>
+
+	<insert id="insertList">
+		/** UsptUdstdprcpDao.insertList */
+		insert into uspt_udstdprcp (
+			   udstdprcp_id
+			 , evl_plan_id
+			 , nm
+			 , gender_cd
+			 , instt_nm
+			 , last_schul
+			 , subjct
+			 , enc_brthdy
+			 , enc_mbtlnum
+			 , bizrno
+			 , creator_id
+			 , created_dt
+			 , updater_id
+			 , updated_dt
+		) values
+		<foreach item="item" index="index" collection="list" separator=",">
+			(
+			   #{item.udstdprcpId}
+			 , #{item.evlPlanId}
+			 , #{item.nm}
+			 , #{item.genderCd}
+			 , #{item.insttNm}
+			 , #{item.lastSchul}
+			 , #{item.subjct}
+			 , #{item.encBrthdy}
+			 , #{item.encMbtlnum}
+			 , #{item.bizrno}
+			 , #{item.creatorId}
+			 , #{item.createdDt}
+			 , #{item.updaterId}
+			 , #{item.updatedDt}
+			)
+		</foreach>
+	</insert>
+
+	<delete id="deleteByPlanId">
+		/** UsptUdstdprcpDao.deleteByPlanId */
+		delete from uspt_udstdprcp
+		 where evl_plan_id = #{evlPlanId}
+	</delete>
+
+	<delete id="delete">
+		/** UsptUdstdprcpDao.delete */
+		delete from uspt_udstdprcp
+		 where udstdprcp_id = #{udstdprcpId}
+	</delete>
+
+</mapper>

@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aicluster.member.common.dao.CmmtInsiderHistDao">
+	<sql id="cmmtInsiderHist_cols">
+		hist_id
+		,hist_dt
+		,member_id
+		,worker_id
+		,fn_cmm_get_member_nm(worker_id) as worker_nm
+		,work_cn
+	</sql>
+
+	<insert id="insert">
+		/** CmmtInsiderHistDao.insert */
+		insert into cmmt_insider_hist (
+			hist_id
+			,hist_dt
+			,member_id
+			,worker_id
+			,work_cn
+		) values (
+			#{histId}
+			,#{histDt}
+			,#{memberId}
+			,#{workerId}
+			,#{workCn}
+		)
+	</insert>
+
+	<insert id="insertList">
+		/** CmmtInsiderHistDao.insertList */
+		insert into cmmt_insider_hist (
+			hist_id
+			,hist_dt
+			,member_id
+			,worker_id
+			,work_cn
+		) values
+		<foreach item="item" collection="list" separator=",">
+		(
+			 #{item.histId}
+			,#{item.histDt}
+			,#{item.memberId}
+			,#{item.workerId}
+			,#{item.workCn}
+		)
+		</foreach>
+	</insert>
+
+	<select id="selectCount" resultType="Long">
+		/** CmmtInsiderHistDao.selectCount */
+		select
+			count(member_id) as cnt
+		from cmmt_insider_hist
+		where
+			member_id = #{memberId}
+	</select>
+
+	<select id="selectList" resultType="aicluster.member.common.dto.InsiderHistDto">
+		/** CmmtInsiderHistDao.selectList */
+		select
+			<include refid="cmmtInsiderHist_cols" />
+		from cmmt_insider_hist
+		where
+			member_id = #{memberId}
+	</select>
+
+	<select id="selectListByMemberId" resultType="aicluster.member.common.entity.CmmtInsiderHist">
+		/** CmmtInsiderHistDao.selectListByMemberId */
+		select
+			<include refid="cmmtInsiderHist_cols"/>
+		from
+			cmmt_insider_hist
+		where
+			member_id = #{memberId}
+		order by
+			hist_dt desc
+	</select>
+</mapper>

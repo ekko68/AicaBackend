@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aicluster.batch.common.dao.CmmtSystemPicDao">
+
+	<sql id="cmmtSystemPic_cols">
+		api_system_id
+		,pic_email
+		,pic_nm
+	</sql>
+
+	<select id="selectList" resultType="aicluster.batch.common.entity.CmmtSystemPic">
+		/** CmmtSystemPicDao.selectList */
+		select
+			<include refid="cmmtSystemPic_cols"/>
+		from
+			cmmt_system_pic
+		where
+			api_system_id = #{apiSystemId}
+	</select>
+
+	<select id="selectAll" resultType="aicluster.batch.common.entity.CmmtSystemPic">
+		/** CmmtSystemPicDao.selectAll */
+		select
+			distinct
+			<include refid="cmmtSystemPic_cols"/>
+		from
+			cmmt_system_pic
+	</select>
+
+</mapper>

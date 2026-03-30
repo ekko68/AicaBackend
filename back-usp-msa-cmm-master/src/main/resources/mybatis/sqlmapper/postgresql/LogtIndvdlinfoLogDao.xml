@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aicluster.common.common.dao.LogtIndvdlinfoLogDao">
+
+	<sql id="where-selectList">
+		log_dt between
+			to_timestamp(#{beginDay} || '000000', 'yyyymmddhh24miss')
+			and to_timestamp(#{endDay} || '235959', 'yyyymmddhh24miss')
+		<if test='workerLoginId != null and workerLoginId != ""'>
+			and member_id in (select member_id from cmmt_insider where login_id = #{workerLoginId})
+		</if>
+	</sql>
+
+	<select id="selectList_count" resultType="Long">
+		/** LogtIndvdlinfoLogDao.selectList_count */
+		select
+			count(*) as cnt
+		from
+			logt_indvdlinfo_log
+		where
+			<include refid="where-selectList"/>
+	</select>
+
+	<select id="selectList" resultType="aicluster.common.common.entity.LogtIndvdlinfoLog">
+		/** LogtIndvdlinfoLogDao.selectList_count */
+		select
+			log_id
+			,log_dt
+			,member_id
+			,member_ip
+			,work_type_nm
+			,work_cn
+			,trgter_id
+			,fn_cmm_get_member(member_id) as member_nm
+			,fn_cmm_get_member(trgter_id) as trgter_nm
+			,#{totalItems} + 1 - (row_number() over (order by log_dt desc)) as rn
+		from
+			logt_indvdlinfo_log
+		where
+			<include refid="where-selectList"/>
+		offset
+			#{beginRowNum} -1
+		limit
+			#{itemsPerPage}
+	</select>
+
+</mapper>

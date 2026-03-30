@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aicluster.pms.common.dao.UsptTaskPartcptsDao">
+
+	<!-- 과제참여자 등록-->
+	<insert id="insert">
+		/** UsptTaskPartcptsDao.insert */
+		insert into uspt_task_partcpts
+				(
+						 task_partcpts_id
+						,bsns_plan_doc_id
+						,partcpts_nm
+						,chrg_realm_nm
+						,enc_mbtlnum
+						,enc_brthdy
+						,partcptn_rate
+						,member_id
+						,creator_id
+						,created_dt
+						,updater_id
+						,updated_dt
+					) values (
+						 #{taskPartcptsId}
+						,#{bsnsPlanDocId}
+						,#{partcptsNm}
+						,#{chrgRealmNm}
+						,#{encMbtlnum}
+						,#{encBrthdy}
+						,#{partcptnRate}
+						,#{memberId}
+						,#{creatorId}
+						,#{createdDt}
+						,#{updaterId}
+						,#{updatedDt}
+					)
+	</insert>
+
+	<!-- 과제참여자 변경-->
+	<update id="update">
+		/** UsptTaskPartcptsDao.update */
+		update uspt_task_partcpts
+			 set   partcpts_nm               = #{partcptsNm}
+					,chrg_realm_nm           = #{chrgRealmNm}
+					,enc_mbtlnum             = #{encMbtlnum}
+					,enc_brthdy                = #{encBrthdy}
+					,partcptn_rate             = #{partcptnRate}
+					,member_id					= #{memberId}
+					,updater_id                = #{updaterId}
+					,updated_dt                = #{updatedDt}
+		where task_partcpts_id = #{taskPartcptsId}
+		  and  bsns_plan_doc_id          = #{bsnsPlanDocId}
+	</update>
+
+	<!-- 과제참여자 삭제-->
+	<delete id="delete">
+		/** UsptTaskPartcptsDao.delete */
+		delete from  uspt_task_partcpts
+			    where task_partcpts_id = #{taskPartcptsId}
+		  		<if test='bsnsPlanDocId != null and bsnsPlanDocId != ""'>
+			      and  bsns_plan_doc_id          = #{bsnsPlanDocId}
+			     </if>
+	</delete>
+
+	<!-- 과제참여자 사업계획서로 삭제-->
+	<delete id="deleteBsnsPlanDocIdAll">
+		/** UsptTaskPartcptsDao.deleteBsnsPlanDocIdAll */
+		delete from  uspt_task_partcpts
+			   where  bsns_plan_doc_id        = #{bsnsPlanDocId}
+	</delete>
+
+	<!-- 과제참여자 조회 -->
+	<select id="selectList" resultType="aicluster.pms.common.entity.UsptTaskPartcpts">
+		/** UsptTaskPartcptsDao.selectList */
+		select
+				 task_partcpts_id
+				,bsns_plan_doc_id
+				,partcpts_nm
+				,chrg_realm_nm
+				,enc_mbtlnum
+				,enc_brthdy
+				,partcptn_rate
+				,member_id
+				, (select member_nm from cmmt_member cm where cm.member_id = utp.member_id)		as member_nm							/*회원명 */
+				,creator_id
+				,created_dt
+				,updater_id
+				,updated_dt
+		from uspt_task_partcpts utp
+	  where	1=1
+		 and 	 bsns_plan_doc_id = #{bsnsPlanDocId}
+	</select>
+
+
+</mapper>

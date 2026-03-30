@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aicluster.pms.common.dao.UsptStdrAtchmnflSetupDao">
+
+	<insert id="insert">
+		/** UsptStdrAtchmnflSetupDao.insert */
+		insert into uspt_stdr_atchmnfl_setup
+										(
+											atchmnfl_setup_id
+											, stdr_bsns_cd
+											, file_knd_nm
+											, essntl
+											, format_attachment_id
+											, creator_id
+											, created_dt
+											, updater_id
+											, updated_dt
+										)
+								values	(
+											#{atchmnflSetupId}
+											, #{stdrBsnsCd}
+											, #{fileKndNm}
+											, #{essntl}
+											, #{formatAttachmentId}
+											, #{creatorId}
+											, #{createdDt}
+											, #{updaterId}
+											, #{updatedDt}
+										)
+	</insert>
+
+	<update id="update">
+		/** UsptStdrAtchmnflSetupDao.update */
+		update uspt_stdr_atchmnfl_setup
+		set
+			updater_id		= #{updaterId}
+			, updated_dt	= #{updatedDt}
+			, file_knd_nm	= #{fileKndNm}
+			, essntl		= #{essntl}
+			, format_attachment_id = #{formatAttachmentId}
+		where
+			atchmnfl_setup_id = #{atchmnflSetupId}
+			and stdr_bsns_cd = #{stdrBsnsCd}
+	</update>
+
+	<delete id="delete">
+		/** UsptStdrAtchmnflSetupDao.delete */
+		delete from uspt_stdr_atchmnfl_setup
+		where
+			atchmnfl_setup_id = #{atchmnflSetupId}
+			and stdr_bsns_cd = #{stdrBsnsCd}
+	</delete>
+
+	<select id="select" resultType="aicluster.pms.common.entity.UsptStdrAtchmnflSetup">
+		/** UsptStdrAtchmnflSetupDao.select */
+		select
+			atchmnfl_setup_id
+			, stdr_bsns_cd
+			, file_knd_nm
+			, essntl
+			, format_attachment_id
+			, creator_id
+			, created_dt
+			, updater_id
+			, updated_dt
+		from uspt_stdr_atchmnfl_setup
+		where
+			stdr_bsns_cd = #{stdrBsnsCd}
+			and atchmnfl_setup_id = #{atchmnflSetupId}
+	</select>
+
+	<select id="selectList" resultType="aicluster.pms.common.entity.UsptStdrAtchmnflSetup">
+		/** UsptStdrAtchmnflSetupDao.selectList */
+		select
+			atchmnfl_setup_id
+			, stdr_bsns_cd
+			, file_knd_nm
+			, essntl
+			, format_attachment_id
+			, (	select
+					file_nm
+				from cmmt_attachment
+				where
+					attachment_id = format_attachment_id
+					and attachment_group_id = '${@aicluster.pms.common.util.Code@SINGLE_FILE_GROUP_ID}'
+					and file_deleted = false
+			) as format_attachment_nm
+		from uspt_stdr_atchmnfl_setup
+		where
+			stdr_bsns_cd = #{stdrBsnsCd}
+	</select>
+</mapper>

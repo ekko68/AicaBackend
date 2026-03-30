@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aicluster.pms.common.dao.UsptBsnsRsltIdxStdIemDao">
+
+	<insert id="insert">
+		/** UsptBsnsRsltIdxStdIemDao.insert*/
+		insert into uspt_bsns_rslt_idx_std_iem
+									(
+										rslt_idx_std_iem_id
+										, rslt_idx_id
+										, std_iem_nm
+										, iem_unit_cd
+										, creator_id
+										, created_dt
+										, updater_id
+										, updated_dt
+									)
+							values	(
+										#{rsltIdxStdIemId}
+										, #{rsltIdxId}
+										, #{stdIemNm}
+										, #{iemUnitCd}
+										, #{creatorId}
+										, #{createdDt}
+										, #{updaterId}
+										, #{updatedDt}
+									)
+	</insert>
+
+	<insert id="insertList">
+		/** UsptBsnsRsltIdxStdIemDao.insertList*/
+		insert into uspt_bsns_rslt_idx_std_iem
+			(
+				rslt_idx_std_iem_id
+				, rslt_idx_id
+				, std_iem_nm
+				, iem_unit_cd
+				, creator_id
+				, created_dt
+				, updater_id
+				, updated_dt
+			) values
+		<foreach item="item" collection="list" separator=",">
+			(
+				#{item.rsltIdxStdIemId}
+				, #{item.rsltIdxId}
+				, #{item.stdIemNm}
+				, #{item.iemUnitCd}
+				, #{item.creatorId}
+				, #{item.createdDt}
+				, #{item.updaterId}
+				, #{item.updatedDt}
+			)
+		</foreach>
+	</insert>
+
+	<update id="update">
+		/** UsptBsnsRsltIdxStdIemDao.update */
+		update uspt_bsns_rslt_idx_std_iem
+		set
+			updater_id		= #{updaterId}
+			, updated_dt	= #{updatedDt}
+			, std_iem_nm	= #{stdIemNm}
+			, iem_unit_cd	= #{iemUnitCd}
+		where
+			rslt_idx_std_iem_id = #{rsltIdxStdIemId}
+			and rslt_idx_id = #{rsltIdxId}
+	</update>
+
+	<delete id="delete">
+		/** UsptBsnsRsltIdxStdIemDao.delete */
+		delete from uspt_bsns_rslt_idx_std_iem
+		where
+			rslt_idx_std_iem_id = #{rsltIdxStdIemId}
+			and rslt_idx_id = #{rsltIdxId}
+	</delete>
+
+	<delete id="deleteAll">
+		/** UsptBsnsRsltIdxStdIemDao.deleteAll */
+		delete from uspt_bsns_rslt_idx_std_iem
+		where
+			rslt_idx_id = #{rsltIdxId}
+	</delete>
+
+</mapper>

@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aicluster.common.common.dao.CmmtSmsDao">
+
+	<sql id="cmmtSms_cols">
+		sms_id
+		,mobile_no
+		,message
+		,send
+		,send_dt
+		,try_cnt
+		,system_id
+		,created_dt
+	</sql>
+
+	<insert id="insert">
+		/** CmmtSmsDao.insert */
+		insert into cmmt_sms (
+			 sms_id
+			,mobile_no
+			,message
+			,send
+			,send_dt
+			,try_cnt
+			,system_id
+			,created_dt
+		) values (
+			 #{smsId}
+			,#{mobileNo}
+			,#{message}
+			,#{send}
+			,#{sendDt}
+			,#{tryCnt}
+			,#{systemId}
+			,#{createdDt}
+		)
+	</insert>
+
+	<insert id="insertList">
+		/** CmmtSmsDao.insertList */
+		insert into cmmt_sms (
+			 sms_id
+			,mobile_no
+			,message
+			,send
+			,send_dt
+			,try_cnt
+			,system_id
+			,created_dt
+		) values
+		<foreach item="item" collection="list" separator=",">
+			(
+				 #{item.smsId}
+				,#{item.mobileNo}
+				,#{item.message}
+				,#{item.send}
+				,#{item.sendDt}
+				,#{item.tryCnt}
+				,#{item.systemId}
+				,#{item.createdDt}
+			)
+		</foreach>
+	</insert>
+
+	<update id="update">
+		/** CmmtSmsDao.update */
+		update cmmt_sms set
+			 mobile_no  = #{mobileNo}
+			,message    = #{message}
+			,send       = #{send}
+			,send_dt    = #{sendDt}
+			,try_cnt    = #{tryCnt}
+			,system_id  = #{systemId}
+			,created_dt = #{createdDt}
+		where
+			sms_id = #{smsId}
+	</update>
+
+	<delete id="delete">
+		/** CmmtSmsDao.delete */
+		delete from
+			cmmt_sms
+		where
+			sms_id = #{smsId}
+	</delete>
+
+	<select id="select" resultType="aicluster.common.common.entity.CmmtSms">
+		/** CmmtSmsDao.select */
+		select
+			<include refid="cmmtSms_cols"/>
+		from
+			cmmt_sms
+		where
+			sms_id = #{smsId}
+	</select>
+
+	<select id="selectList_notSent" resultType="aicluster.common.common.entity.CmmtSms">
+		/** CmmtSmsDao.selectList_notSent */
+		select
+			<include refid="cmmtSms_cols"/>
+		from
+			cmmt_sms
+		where
+			<![CDATA[
+			send = false
+			and created_dt >= #{fromDt}
+			and try_cnt < #{maxTryCnt}
+			]]>
+		order by
+			created_dt
+	</select>
+
+	<delete id="delete_old">
+		/** CmmtSmsDao.delete_old */
+		delete from
+			cmmt_sms
+		where
+			<![CDATA[
+			created_dt <= #{dtime}
+			]]>
+	</delete>
+</mapper>

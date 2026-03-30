@@ -1,0 +1,307 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aicluster.pms.common.dao.UsptEvlPlanDao">
+
+	<select id="selectList" resultType="aicluster.pms.common.entity.UsptEvlPlan">
+		/** EvlPlanDao.selectList */
+		select
+			   a.evl_plan_id
+			 , a.pblanc_id
+			 , a.rcept_odr
+			 , a.rcept_odr || '차' as rcept_odr_nm
+			 , a.evl_type_cd
+			 , a.enabled
+			 , fn_cmm_get_code_nm('EVL_TYPE',a.evl_type_cd) as evl_type_nm
+			 , a.wct_mdat_dlbrt
+			 , a.evl_sttus_cd
+			 , fn_cmm_get_code_nm('EVL_STTUS',a.evl_sttus_cd) as evl_sttus_nm
+			 , a.creator_id
+			 , fn_cmm_get_member_nm(a.creator_id) as charger_nm
+			 , b.pblanc_nm  /*공고명*/
+			 , b.pblanc_no  /*공고번호*/
+			 , case when b.ordtm_rcrit = true
+			       then '상시모집'
+			       when b.ordtm_rcrit = false
+			       then '정시모집'
+			   else ''
+			   end as ordtm_rcrit_nm /*상시모집여부*/
+			 , to_char(to_date(c.evl_prarnde,'yyyymmdd'),'yyyy-mm-dd') as evl_prarnde /*평가예정일시*/
+			 , fn_cmm_get_code_nm('DEPT_CD',d.dept_nm) as chrg_dept_nm 											  /*담당부서명  */
+			 , to_char(a.created_dt,'yyyy-mm-dd') as rgsde
+			 , a.creator_id as insider_id
+			 , b.ordtm_rcrit
+			 , to_char(a.created_dt,'yyyy-mm-dd') as reg_dt
+			 , a.created_dt
+			 , a.updater_id
+			 , a.updated_dt
+			 , row_number() over (order by a.created_dt desc) as rn
+		 from uspt_evl_plan a 				/*평가계획*/
+		 	  left outer join uspt_bsns_pblanc b  		/*사업공고*/
+		 			       on a.pblanc_id = b.pblanc_id
+		 	  left outer join (select max(s3.evl_prarnde) as evl_prarnde
+									, s1.evl_plan_id
+								 from uspt_sect s1
+								 	  inner join uspt_evl_step s2
+								 			  on s2.evl_plan_id = s1.evl_plan_id
+									  inner join uspt_evl_cmit s3
+								 			  on s3.sect_id = s1.sect_id
+										 	 and s3.evl_step_id = s2.evl_step_id
+								group by s1.evl_plan_id ) c
+						   on c.evl_plan_id = a.evl_plan_id
+			   left outer join cmmt_insider as d
+ 			 				on d.member_id = a.creator_id
+		where 1=1
+		<if test='evlSttusCd != null and evlSttusCd != ""'>
+			and a.evl_sttus_cd = #{evlSttusCd}
+		</if>
+
+		<if test='evlTypeCd != null and evlTypeCd != ""'>
+			and a.evl_type_cd = #{evlTypeCd}
+		</if>
+
+		<if test="ordtmRcrit != null">
+			and b.ordtm_rcrit = #{ordtmRcrit}
+		</if>
+
+		<if test='pblancNm != null and pblancNm != ""'>
+			and b.pblanc_nm like '%' || #{pblancNm} || '%'
+		</if>
+
+		<if test='pblancNo != null and pblancNo != ""'>
+			and b.pblanc_no like '%' || #{pblancNo} || '%'
+		</if>
+
+		<if test='chargerNm != null and chargerNm != ""'>
+			and fn_cmm_get_member_nm(a.creator_id) like '%' || #{chargerNm} || '%'
+		</if>
+
+		<if test="!isExcel">
+			offset #{beginRowNum} -1
+			limit #{itemsPerPage}
+		</if>
+	</select>
+
+	<select id="selectListCount" resultType="Long">
+		/** EvlPlanDao.selectListCount */
+		select count(a.evl_plan_id) as cnt
+		  from uspt_evl_plan a 				/*평가계획*/
+		 	   left outer join uspt_bsns_pblanc b  		/*사업공고*/
+		 			        on a.pblanc_id = b.pblanc_id
+		where 1=1
+		<if test='evlSttusCd != null and evlSttusCd != ""'>
+			and a.evl_sttus_cd = #{evlSttusCd}
+		</if>
+
+		<if test='evlTypeCd != null and evlTypeCd != ""'>
+			and a.evl_type_cd = #{evlTypeCd}
+		</if>
+
+		<if test="ordtmRcrit != null">
+			and b.ordtm_rcrit = #{ordtmRcrit}
+		</if>
+
+		<if test='pblancNm != null and pblancNm != ""'>
+			and b.pblanc_nm like '%' || #{pblancNm} || '%'
+		</if>
+
+		<if test='pblancNo != null and pblancNo != ""'>
+			and b.pblanc_no like '%' || #{pblancNo} || '%'
+		</if>
+
+		<if test='pblancId != null and pblancId != ""'>
+			and a.pblanc_id = #{pblancId}
+		</if>
+
+		<if test='rceptOdr != null and rceptOdr != ""'>
+			and a.rcept_odr = #{rceptOdr}
+		</if>
+
+		<if test='chargerNm != null and chargerNm != ""'>
+			and fn_cmm_get_member_nm(a.creator_id) like '%' || #{chargerNm} || '%'
+		</if>
+	</select>
+
+	<select id="select" resultType="aicluster.pms.common.entity.UsptEvlPlan">
+		/** EvlPlanDao.select */
+		select
+			   a.evl_plan_id
+			 , a.pblanc_id
+			 , a.rcept_odr
+			 , a.evl_type_cd
+			 , fn_cmm_get_code_nm('EVL_TYPE',a.evl_type_cd) as evl_type_nm
+			 , a.wct_mdat_dlbrt
+			 , a.evl_sttus_cd
+			 , a.enabled
+			 , fn_cmm_get_code_nm('EVL_STTUS',a.evl_sttus_cd) as evl_sttus_nm
+			 , a.creator_id
+			 , fn_cmm_get_member_nm(a.creator_id) as charger_nm
+			 , b.pblanc_nm  /*공고명*/
+			 , b.pblanc_no  /*공고번호*/
+			 , case when b.ordtm_rcrit = true
+			       then '상시모집'
+			       when b.ordtm_rcrit = false
+			       then '정시모집'
+			   else ''
+			   end as ordtm_rcrit_nm /*상시모집여부*/
+			 , to_char(a.created_dt,'yyyy-mm-dd') as rgsde
+			 , a.creator_id as insider_id
+			 , b.ordtm_rcrit
+			 , a.created_dt
+			 , a.updater_id
+			 , a.updated_dt
+		 from uspt_evl_plan a 				/*평가계획*/
+		 	  left outer join uspt_bsns_pblanc b  		/*사업공고*/
+		 			       on a.pblanc_id = b.pblanc_id
+		where 1 = 1
+		  and a.evl_plan_id = #{evlPlanId}
+	</select>
+
+	<insert id="insert">
+		/** EvlPlanDao.insert */
+		insert into uspt_evl_plan (
+			   evl_plan_id
+			 , pblanc_id
+			 , rcept_odr
+			 , evl_type_cd
+			 , wct_mdat_dlbrt
+			 , evl_sttus_cd
+			 , enabled
+			 , creator_id
+			 , created_dt
+			 , updater_id
+			 , updated_dt
+		) values (
+			   #{evlPlanId}
+			 , #{pblancId}
+			 , #{rceptOdr}
+			 , #{evlTypeCd}
+			 , #{wctMdatDlbrt}
+			 , #{evlSttusCd}
+			 , true
+			 , #{creatorId}
+			 , #{createdDt}
+			 , #{updaterId}
+			 , #{updatedDt}
+		)
+	</insert>
+
+	<update id="update">
+		/** EvlPlanDao.update */
+		update uspt_evl_plan set
+			   pblanc_id                 = #{pblancId}
+			 , rcept_odr                 = #{rceptOdr}
+			 , evl_type_cd               = #{evlTypeCd}
+			 , wct_mdat_dlbrt            = #{wctMdatDlbrt}
+			 , evl_sttus_cd              = #{evlSttusCd}
+			 , updater_id                = #{updaterId}
+			 , updated_dt                = #{updatedDt}
+		where evl_plan_id = #{evlPlanId}
+	</update>
+
+	<update id="updateEnable">
+		/** EvlPlanDao.updateEnable */
+		update uspt_evl_plan set
+			   enabled         = #{enabled}
+			 , updater_id      = #{updaterId}
+			 , updated_dt      = #{updatedDt}
+		where evl_plan_id = #{evlPlanId}
+	</update>
+
+	<delete id="delete">
+		/** EvlPlanDao.delete */
+		delete
+		  from uspt_evl_iem_nm
+		where 1=1
+	      and evl_iem_id 	= #{evlIemId}
+		  and evl_table_id  = #{evlTableId}
+	</delete>
+
+	<select id="selectPblancEvlStepList" resultType="aicluster.pms.common.dto.EvlPlanPblancStepDto">
+		/** EvlPlanDao.selectPblancTargetList */
+		select *
+		from (
+				select
+					ues.evl_step_id
+					, ues.evl_step_nm
+					, ues.sort_ordr_no
+					, ues.slctn_target_co
+					, us.sect_id
+					, us.sect_nm
+					, '' as evl_last_slctn_id
+				 from uspt_evl_plan uep
+				 		inner join uspt_evl_step ues
+							on uep.evl_plan_id = ues.evl_plan_id
+						inner join uspt_sect us
+							on uep.evl_plan_id  = us.evl_plan_id
+						inner join uspt_evl_cmit uec
+							on uec.sect_id = us.sect_id
+							and uec.evl_step_id = ues.evl_step_id
+							and uec.evl_sttus_cd = 'EVST03'
+				where
+					uep.pblanc_id = #{pblancId}
+					and uep.rcept_odr = #{rceptOdr}
+			union all
+				select
+					'' as evl_step_id
+					, '최종선정' as evl_step_nm
+					, 100 as sort_ordr_no
+					, (select count(*) from uspt_last_slctn_trget where evl_last_slctn_id = uels.evl_last_slctn_id and slctn = true) as slctn_target_co
+					, '' as sect_id
+					, '' as sect_nm
+					, uels.evl_last_slctn_id
+				from uspt_evl_plan uep
+						inner join uspt_evl_last_slctn uels
+							on uep.evl_plan_id  = uels.evl_plan_id
+							and uels.last_slctn = true
+				where
+					uep.evl_type_cd = 'EVTY03'
+					and uep.pblanc_id = #{pblancId}
+					and uep.rcept_odr = #{rceptOdr}
+			) sub
+		order by
+			sub.sect_id, sub.sort_ordr_no
+	</select>
+
+
+	<select id="selectEvlStep" resultType="aicluster.pms.common.dto.EvlPlanPblancStepDto">
+		/** EvlPlanDao.selectStepPblancTarget */
+		select
+			ues.evl_step_id
+			, ues.evl_step_nm
+			, ues.slctn_target_co
+			, us.sect_id
+			, us.sect_nm
+		 from uspt_evl_plan uep
+		 		inner join uspt_evl_step ues
+					on ues.evl_plan_id = uep.evl_plan_id
+					and ues.evl_step_id = #{evlStepId}
+					and ues.evl_step_sttus_cd = 'ESTE03'
+				inner join uspt_sect us
+					on us.evl_plan_id  = uep.evl_plan_id
+					and us.sect_id = #{sectId}
+		where
+			uep.pblanc_id = #{pblancId}
+			and uep.rcept_odr = #{rceptOdr}
+	</select>
+
+
+	<select id="selectEvlLastSlctn" resultType="aicluster.pms.common.dto.EvlPlanPblancStepDto">
+		/** EvlPlanDao.selectLastSlctnPblancTarget */
+		select
+			uep.pblanc_id
+			, uep.rcept_odr
+			, uep.evl_plan_id
+			, '최종선정' as evl_step_nm
+			, (select count(*) from uspt_last_slctn_trget where evl_last_slctn_id = uels.evl_last_slctn_id and slctn = true) as slctn_target_co
+			, uels.evl_last_slctn_id
+		from uspt_evl_plan uep
+				inner join uspt_evl_last_slctn uels
+					on uep.evl_plan_id  = uels.evl_plan_id
+					and uels.last_slctn = true
+		where
+			uep.pblanc_id = #{pblancId}
+			and uep.rcept_odr = #{rceptOdr}
+			and uels.evl_last_slctn_id = #{evlLastSlctnId}
+	</select>
+
+</mapper>

@@ -1,0 +1,546 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aicluster.pms.common.dao.UsptEvlOnlineDao">
+
+	<select id="selectEvlOnlineAtendList" resultType="aicluster.pms.common.entity.UsptEvlMfcmm">
+		/** UsptEvlOnlineDao.selectEvlOnlineAtendList */
+		select a.evl_mfcmm_id
+			 , a.evl_cmit_id
+			 , a.extrc_mfcmm_id
+			 , a.login_id
+			 , a.enc_password
+			 , a.use_bgnde
+			 , a.use_endde
+			 , a.refresh_token
+			 , a.charmn
+			 , a.atend_sttus_cd
+			 , coalesce(fn_cmm_get_code_nm('ATEND_STTUS', a.atend_sttus_cd),'') as atend_sttus_nm
+			 , a.atend_dt
+			 , coalesce(a.evas, false) as evas
+			 , case when a.evas = true then '회피동의' else '' end evas_nm
+			 , a.evas_resn_cn
+			 , a.creator_id
+			 , a.created_dt
+			 , a.updater_id
+			 , a.updated_dt
+			 , c.expert_nm as evl_mfcmm_nm
+			 , row_number() over (order by a.created_dt asc) as rn
+		 from uspt_evl_mfcmm a
+			  inner join uspt_extrc_mfcmm b
+					  on a.extrc_mfcmm_id = b.extrc_mfcmm_id
+			  inner join uspt_expert c
+		    		  on b.expert_id = c.expert_id
+		where 1 = 1
+		  and a.evl_cmit_id = #{evlCmitId}
+	</select>
+
+	<select id="select" resultType="aicluster.pms.common.entity.UsptEvlMfcmm">
+		/** UsptEvlOnlineDao.select */
+		select a.evl_mfcmm_id
+			 , a.evl_cmit_id
+			 , a.extrc_mfcmm_id
+			 , a.login_id
+			 , a.enc_password
+			 , a.use_bgnde
+			 , a.use_endde
+			 , a.refresh_token
+			 , a.charmn
+			 , a.atend_sttus_cd
+			 , coalesce(fn_cmm_get_code_nm('ATEND_STTUS', a.atend_sttus_cd),'') as atend_sttus_nm
+			 , a.atend_dt
+			 , coalesce(a.evas, false) as evas
+			 , case when a.evas = true then '회피동의' else '' end evas_nm
+			 , a.evas_resn_cn
+			 , a.creator_id
+			 , a.created_dt
+			 , a.updater_id
+			 , a.updated_dt
+			 , c.expert_nm as evl_mfcmm_nm
+			 , row_number() over (order by a.created_dt asc) as rn
+		 from uspt_evl_mfcmm a
+			  inner join uspt_extrc_mfcmm b
+					  on a.extrc_mfcmm_id = b.extrc_mfcmm_id
+			  inner join uspt_expert c
+		    		  on b.expert_id = c.expert_id
+		where 1 = 1
+		  and a.evl_mfcmm_id = #{evlMfcmmId}
+	</select>
+
+
+	<update id="updateCharmnAllfalse">
+		/** UsptEvlOnlineDao.updateCharmnAllfalse */
+		update uspt_evl_mfcmm
+		   set charmn = false
+		 where evl_cmit_id = #{evlCmitId}
+	</update>
+
+	<update id="updateCharmn">
+		/** UsptEvlOnlineDao.updateCharmn */
+		update uspt_evl_mfcmm
+		  set charmn = true
+		    , updater_id = #{updaterId}
+			, updated_dt = #{updatedDt}
+		where evl_mfcmm_id = #{evlMfcmmId}
+	</update>
+
+	<update id="updateAttend">
+		/** UsptEvlOnlineDao.updateAttend */
+		update uspt_evl_mfcmm
+		  set atend_sttus_cd = #{atendSttusCd}
+		    , updater_id = #{updaterId}
+			, updated_dt = #{updatedDt}
+		where evl_mfcmm_id = #{evlMfcmmId}
+	</update>
+
+
+	<update id="updateEvas">
+		/** UsptEvlOnlineDao.updateEvas */
+		update uspt_evl_mfcmm
+		  set evas_resn_cn = #{evasResnCn}
+		<if test='atendSttusCd != null and atendSttusCd != ""'>
+		    , atend_sttus_cd = #{atendSttusCd}
+	    </if>
+		    , updater_id = #{updaterId}
+			, updated_dt = #{updatedDt}
+		where evl_mfcmm_id = #{evlMfcmmId}
+	</update>
+
+
+	<select id="selectEvlOnlineSttusList" resultType="aicluster.pms.common.dto.EvlResultByTargetListDto">
+		/** UsptEvlOnlineDao.selectEvlOnlineSttusList */
+		select row_number() over (order by e.created_dt desc) as rn --번호
+			 , e.receipt_no									--접수번호
+			 , a.evl_cmit_id
+			 , d.apply_id  									--신청ID
+			 , d.evl_trget_id
+			 , e.member_id									--회원ID
+			 , fn_cmm_get_member(e.member_id) as member_nm 	--회원명
+			 , a.evl_table_id  								--평가표id
+			 , (
+			 	select sum(s.evl_score)
+			 	  from uspt_evl_iem_result_adsbtr s 	/*가점항목*/
+					   inner join uspt_evl_iem_nm s1
+							   on s.evl_iem_id = s1.evl_iem_id
+				 where s1.evl_table_id = a.evl_table_id
+				   and s1.evl_div_cd = '${@aicluster.pms.common.util.Code@evlDivAdd}'
+				   and s.evl_trget_id = d.evl_trget_id
+				   and s.evl_cmit_id = a.evl_cmit_id
+				) as add_score								--가점점수합계
+			 , (
+			 	select case when count(s.evl_cn) > 0 then '가점' else count(s.evl_cn) || '' end
+			 	  from uspt_evl_iem_result_adsbtr s 	/*가점항목*/
+					   inner join uspt_evl_iem_nm s1
+							   on s.evl_iem_id = s1.evl_iem_id
+				 where s1.evl_table_id = a.evl_table_id
+				   and s1.evl_div_cd = '${@aicluster.pms.common.util.Code@evlDivAdd}'
+				   and s.evl_trget_id = d.evl_trget_id
+				   and s.evl_cmit_id = a.evl_cmit_id
+				) as add_rm								--가점비고
+			 , (
+			    select sum(s.evl_score)
+			      from uspt_evl_iem_result_adsbtr s /*가점항목*/
+					   inner join uspt_evl_iem_nm s1
+							   on s.evl_iem_id = s1.evl_iem_id
+				 where s1.evl_table_id = a.evl_table_id
+				   and s1.evl_div_cd = '${@aicluster.pms.common.util.Code@evlDivMinus}'
+				   and s.evl_trget_id = d.evl_trget_id
+				   and s.evl_cmit_id = a.evl_cmit_id
+				) as minus_score 							--가점점수합계
+			 , (
+			    select case when count(s.evl_cn) > 0 then '가점' else count(s.evl_cn) || '' end
+			      from uspt_evl_iem_result_adsbtr s /*가점항목*/
+					   inner join uspt_evl_iem_nm s1
+							   on s.evl_iem_id = s1.evl_iem_id
+				 where s1.evl_table_id = a.evl_table_id
+				   and s1.evl_div_cd = '${@aicluster.pms.common.util.Code@evlDivMinus}'
+				   and s.evl_trget_id = d.evl_trget_id
+				   and s.evl_cmit_id = a.evl_cmit_id
+				) as minus_rm 							--감점비고
+			 , b.evl_plan_id 								--평가계획
+			 , c.sect_id
+			 , c.sect_nm
+		  from USPT_EVL_CMIT a 									/*위원회 테이블*/
+			   inner join uspt_evl_step b 						/*평가단계 테이블*/
+			 		   on b.evl_step_id = a.evl_step_id
+			   inner join uspt_sect c 							/*분과 테이블*/
+					   on c.sect_id = a.sect_id
+			   inner join uspt_evl_trget d 						/*평가대상 테이블*/
+			    	   on d.evl_step_id = b.evl_step_id
+			    	  and d.sect_id = c.sect_id
+			   inner join uspt_bsns_pblanc_applcnt e  			/*사업공고신청자 테이블 */
+			   		   on e.apply_id  = d.apply_id
+		where a.evl_cmit_id = #{evlCmitId}
+	</select>
+
+
+	<select id="selectEvlOnlineResultList" resultType="aicluster.pms.common.dto.EvlResultByTargetListDto">
+		/** UsptEvlOnlineDao.selectEvlOnlineResultList */
+		select t_data.*
+			 , t_data.avrg_score +add_score-minus_score as gnrlz_core --종합점수
+		  from (
+				select row_number() over (order by e.created_dt desc) as rn --번호
+					 , e.receipt_no									--접수번호
+					 , a.evl_cmit_id
+					 , d.apply_id  									--신청ID
+					 , d.evl_trget_id
+					 , d.slctn
+			 		 , case when d.slctn = true then '선정' when d.slctn = false then '탈락' else '-' end as slctn_nm
+			 		 , to_char(d.slctn_dt , 'yyyy-mm-dd') as fmt_slctn_dt
+			 		 , d.slctn_dt
+					 , e.member_id									--회원ID
+					 , fn_cmm_get_member(e.member_id) as member_nm 	--회원명
+					 , a.evl_table_id  								--평가표id
+					 , (
+					 	select sum(s.evl_score)
+					 	  from uspt_evl_iem_result_adsbtr s 	/*가점항목*/
+							   inner join uspt_evl_iem_nm s1
+									   on s.evl_iem_id = s1.evl_iem_id
+						 where s1.evl_table_id = a.evl_table_id
+						   and s1.evl_div_cd = '${@aicluster.pms.common.util.Code@evlDivAdd}'
+						   and s.evl_trget_id = d.evl_trget_id
+						   and s.evl_cmit_id = a.evl_cmit_id
+						) as add_score								--가점점수합계
+					 , (
+					 	select case when count(s.evl_cn) > 0 then '가점' else count(s.evl_cn) || '' end
+					 	  from uspt_evl_iem_result_adsbtr s 	/*가점항목*/
+							   inner join uspt_evl_iem_nm s1
+									   on s.evl_iem_id = s1.evl_iem_id
+						 where s1.evl_table_id = a.evl_table_id
+						   and s1.evl_div_cd = '${@aicluster.pms.common.util.Code@evlDivAdd}'
+						   and s.evl_trget_id = d.evl_trget_id
+						   and s.evl_cmit_id = a.evl_cmit_id
+						) as add_rm								--가점비고
+					 , (
+					    select sum(s.evl_score)
+					      from uspt_evl_iem_result_adsbtr s /*가점항목*/
+							   inner join uspt_evl_iem_nm s1
+									   on s.evl_iem_id = s1.evl_iem_id
+						 where s1.evl_table_id = a.evl_table_id
+						   and s1.evl_div_cd = '${@aicluster.pms.common.util.Code@evlDivMinus}'
+						   and s.evl_trget_id = d.evl_trget_id
+						   and s.evl_cmit_id = a.evl_cmit_id
+						) as minus_score 							--가점점수합계
+					 , (
+			    		select case when count(s.evl_cn) > 0 then '가점' else count(s.evl_cn) || '' end
+					      from uspt_evl_iem_result_adsbtr s /*가점항목*/
+							   inner join uspt_evl_iem_nm s1
+									   on s.evl_iem_id = s1.evl_iem_id
+						 where s1.evl_table_id = a.evl_table_id
+						   and s1.evl_div_cd = '${@aicluster.pms.common.util.Code@evlDivMinus}'
+						   and s.evl_trget_id = d.evl_trget_id
+						   and s.evl_cmit_id = a.evl_cmit_id
+						) as minus_rm 							--감점비고
+					 , b.evl_plan_id 								--평가계획
+					 , c.sect_id
+					 , c.sect_nm
+					 , t_score.top_score
+					 , t_score.lwet_score
+					 , t_score.avrg_score
+					 , t_score.sm_score
+				  from uspt_evl_cmit a 									/*위원회 테이블*/
+					   inner join uspt_evl_step b 						/*평가단계 테이블*/
+					 		   on b.evl_step_id = a.evl_step_id
+					   inner join uspt_sect c 							/*분과 테이블*/
+							   on c.sect_id = a.sect_id
+					   inner join uspt_evl_trget d 						/*평가대상 테이블*/
+					    	   on d.evl_step_id = b.evl_step_id
+					    	  and d.sect_id = c.sect_id
+					   inner join uspt_bsns_pblanc_applcnt e  			/*사업공고신청자 테이블 */
+					   		   on e.apply_id  = d.apply_id
+					   left outer join (
+					   					select max(t.evl_score) as top_score	--최고점수
+											 , min(t.evl_score) as lwet_score	--최저점수
+											 , avg(t.evl_score) as avrg_score	--평균점수
+											 , sum(t.evl_score) as sm_score		--합계점수
+											 , t.evl_trget_id					--대상id
+										  from (
+												select b.evl_mfcmm_id --위원id
+													 , a.evl_trget_id
+													 , (
+													    select sum(evl_score)
+														  from uspt_evl_iem_result
+												 		 where evl_result_id = b.evl_result_id
+													   ) as evl_score --합계점수
+													 , (
+													 	select s3.expert_nm
+														  from uspt_evl_mfcmm s1
+															   inner join uspt_extrc_mfcmm s2
+															    	   on s1.extrc_mfcmm_id  = s2.extrc_mfcmm_id
+															   inner join uspt_expert s3
+															   		   on s2.expert_id  = s3.expert_id
+												 		 where s1.evl_mfcmm_id = b.evl_mfcmm_id
+													   ) as evl_mfcmm_nm 	--위원명
+													 , a.apply_id    	--공고신청ID
+										 			 , b.mfcmm_evl_sttus_cd
+													 , fn_cmm_get_code_nm('MFCMM_EVL_STTUS',mfcmm_evl_sttus_cd) as mfcmm_evl_sttus_nm
+													 , b.evl_result_id
+												  from uspt_evl_trget a 				  /*평가대상*/
+													   inner join uspt_evl_mfcmm_result b /*평가위원별 결과*/
+															   on a.evl_trget_id = b.evl_trget_id
+										        ) t group by t.evl_trget_id
+										   ) as t_score /*점수결과 산정*/
+									on d.evl_trget_id = t_score.evl_trget_id
+				where a.evl_cmit_id = #{evlCmitId}
+			) t_data
+	</select>
+
+
+	<select id="selectEvlResultByMfcmmList" resultType="aicluster.pms.common.dto.EvlResultByMfcmmListDto">
+		/** UsptEvlOnlineDao.selectEvlResultByMfcmmList */
+		select b.evl_mfcmm_id --위원id
+			 , a.evl_trget_id
+			 , (
+			    select sum(evl_score)
+			      from USPT_EVL_IEM_RESULT
+			 	 where evl_result_id = b.evl_result_id
+			   ) as evl_score --합계점수
+			 , (
+			 	select s3.expert_nm
+			 	  from uspt_evl_mfcmm s1
+					   inner join USPT_EXTRC_MFCMM s2 on s1.extrc_mfcmm_id  = s2.extrc_mfcmm_id
+					   inner join USPT_EXPERT s3 on s2.expert_id  = s3.expert_id
+				 where s1.evl_mfcmm_id = b.evl_mfcmm_id
+				) as evl_mfcmm_nm 	--위원명
+			 , a.apply_id    	--공고신청ID
+ 			 , b.mfcmm_evl_sttus_cd
+			 , fn_cmm_get_code_nm('MFCMM_EVL_STTUS',mfcmm_evl_sttus_cd) as mfcmm_evl_sttus_nm
+			 , b.evl_result_id
+		  from uspt_evl_trget a 				  /*평가대상*/
+			   inner join uspt_evl_mfcmm_result b /*평가위원별 결과*/
+					   on a.evl_trget_id = b.evl_trget_id
+		where a.evl_trget_id  = #{evlTrgetId}
+	</select>
+
+
+	<select id="selectEvlResultBasicInfo" resultType="aicluster.pms.common.dto.EvlResultBasicInfoDto">
+		/** UsptEvlOnlineDao.selectEvlResultBasicInfo */
+		select a.evl_mfcmm_id --위원id
+			 , a.evl_result_id --평가결과id
+			 , a.evl_opinion --개별의견
+			 , a.evl_trget_id --평가대상id
+			 , b.apply_id --신청id
+			 , c.receipt_no --접수번호
+			 , c.member_id --회원id
+			 , fn_cmm_get_member (c.member_id) as member_nm --회원명
+			 , a.evl_result_id
+			 , (
+			 	select s3.expert_nm
+			 	  from uspt_evl_mfcmm s1
+					   inner join uspt_extrc_mfcmm s2 on s1.extrc_mfcmm_id  = s2.extrc_mfcmm_id
+					   inner join uspt_expert s3 on s2.expert_id  = s3.expert_id
+				 where s1.evl_mfcmm_id = a.evl_mfcmm_id) as evl_mfcmm_nm /*위원명*/
+			 , (
+		        select evl_mthd_cd
+		          from uspt_evl_table
+				 where evl_table_id = (
+									   select max(s2.evl_table_id)
+									     from uspt_evl_iem_result s1
+											  inner join uspt_evl_iem_nm s2
+											      	  on s1.evl_iem_id = s2.evl_iem_id
+										where s1.evl_result_id = a.evl_result_id
+					)
+				) as evl_mthd_cd --평가방식코드
+		 from uspt_evl_mfcmm_result a /*위원별평가결과*/
+			  inner join uspt_evl_trget b  /*평가대상*/
+					  on a.evl_trget_id = b.evl_trget_id
+			  inner join uspt_bsns_pblanc_applcnt c /*공고신청자*/
+				 	  on c.apply_id  = b.apply_id
+			where a.evl_result_id = #{evlResultId}
+	</select>
+
+
+	<select id="selectEvlResultIemDetail" resultType="aicluster.pms.common.dto.EvlResultDetailByIemDto">
+		/** UsptEvlOnlineDao.selectEvlResultIemDetail */
+		select b.evl_iem_nm --평가항목
+			 , b.evl_iem_id --평가항목id
+			 , b.evl_iem_cn --세부항목
+			 , b.allot_score --배점
+			 , c.evl_score  --평가점수
+			 , c.evl_result_id
+			 , c.evl_iem_result_id
+			 , c.evl_cn --평가내용
+		  from  uspt_evl_table a
+			 	inner join uspt_evl_iem_nm b
+			 			on a.evl_table_id = b.evl_table_id
+				inner join uspt_evl_iem_result c
+						on c.evl_iem_id = b.evl_iem_id
+		where b.evl_div_cd = '${@aicluster.pms.common.util.Code@evlDivGnrl}'
+		  and c.evl_result_id = #{evlResultId}
+	 	  and a.evl_table_id = (
+	 	  						select c.evl_table_id
+	 	  						  from uspt_evl_mfcmm_result a
+									   inner join uspt_evl_mfcmm b
+									   		   on a.evl_mfcmm_id = b.evl_mfcmm_id
+									   inner join uspt_evl_cmit c
+									   		   on b.evl_cmit_id = c.evl_cmit_id
+								 where evl_result_id = #{evlResultId}
+							   )
+	</select>
+
+
+	<select id="selectEvlResultAddAllotBasicInfo" resultType="aicluster.pms.common.dto.EvlResultAddAllotBasicDto">
+		/** UsptEvlOnlineDao.selectEvlResultAddAllotBasicInfo */
+		select a.adsbtr_resn_cn 	--가감점사유
+			 , b.apply_id 			--신청id
+			 , c.receipt_no 		--접수번호
+			 , c.member_id 			--회원id
+			 , fn_cmm_get_member (c.member_id) as member_nm --회원명
+			 , d.task_nm_ko
+			 , a.evl_cmit_id
+			 , a.evl_trget_id
+			 , (
+			 	select s2.evl_mthd_cd
+			 	  from uspt_evl_cmit s1
+			  		   inner join uspt_evl_table s2
+			  		   		   on s1.evl_table_id = s2.evl_table_id
+  			  	 where evl_cmit_id = a.evl_cmit_id
+			   ) as evl_mthd_cd --평가방식코드
+		  from (
+		  		select a.evl_trget_id
+					 , a.evl_cmit_id
+					 , max(a.adsbtr_resn_cn) as adsbtr_resn_cn
+				  from uspt_evl_iem_result_adsbtr a
+					   inner join uspt_evl_iem_nm b
+					     	  on a.evl_iem_id = b.evl_iem_id
+			     where b.evl_div_cd = #{evlDivCd}
+				   and a.evl_cmit_id = #{evlCmitId}
+				   and a.evl_trget_id = #{evlTrgetId}
+				 group by evl_trget_id, evl_cmit_id
+			   ) a
+			   inner join uspt_evl_trget b  					/*평가대상*/
+					   on a.evl_trget_id = b.evl_trget_id
+			   inner join uspt_bsns_pblanc_applcnt c 			/*공고신청자*/
+				 	   on c.apply_id  = b.apply_id
+			   left outer join uspt_bsns_pblanc_apply_task d
+			  		   on c.apply_id = d.apply_id
+	</select>
+
+
+	<select id="selectEvlResultAddAllotDetail" resultType="aicluster.pms.common.dto.EvlResultDetailByIemDto">
+		/** UsptEvlOnlineDao.selectEvlResultAddAllotDetail */
+		select b.evl_iem_nm --평가항목
+			 , b.evl_iem_id --평가항목id
+			 , b.evl_iem_cn --세부항목
+			 , b.allot_score --배점
+			 , c.evl_score  --평가점수
+			 , c.evl_iem_result_adsbtr_id
+		  from  uspt_evl_table a
+			 	inner join uspt_evl_iem_nm b
+			 			on a.evl_table_id = b.evl_table_id
+				inner join uspt_evl_iem_result_adsbtr c
+						on c.evl_iem_id = b.evl_iem_id
+		where  1= 1
+		  and b.evl_div_cd = #{evlDivCd}
+		  and c.evl_cmit_id = #{evlCmitId}
+		  and c.evl_trget_id = #{evlTrgetId}
+	</select>
+
+
+	<select id="selectValidKeyByAddAllot" resultType="Integer">
+		/** UsptEvlOnlineDao.selectValidKeyByAddAllot */
+		select count(evl_iem_result_adsbtr_id) as cnt
+		  from USPT_EVL_IEM_RESULT_ADSBTR
+		 where evl_iem_result_adsbtr_id = #{evlIemResultAdsbtrId}
+	</select>
+
+
+	<update id="updateEvlResultAddMinus">
+		with update_data as (
+        	 update uspt_evl_iem_result_adsbtr set
+	      	 		      evl_score                 = #{evlScore}
+	      	 		    , evl_cn					= #{evlCn}
+						, adsbtr_resn_cn            = #{adsbtrResnCn}
+						, updater_id                = #{updaterId}
+						, updated_dt                = #{updatedDt}
+				where evl_iem_result_adsbtr_id = #{evlIemResultAdsbtrId}
+				returning *
+			)
+	         insert into uspt_evl_iem_result_adsbtr (
+												     evl_iem_result_adsbtr_id
+												   , evl_iem_id
+												   , evl_trget_id
+												   , evl_cmit_id
+											   	   , evl_score
+												   , evl_cn
+												   , adsbtr_resn_cn
+												   , creator_id
+												   , created_dt
+												    )
+										      select #{evlIemResultAdsbtrId}
+												   , #{evlIemId}
+												   , #{evlTrgetId}
+												   , #{evlCmitId}
+												   , #{evlScore}
+												   , #{evlCn}
+												   , #{adsbtrResnCn}
+												   , #{creatorId}
+												   , #{createdDt}
+				where not exists (select * from update_data)
+	</update>
+
+
+	<select id="selectEvlOnlineEvlReusltGnrlz" resultType="aicluster.pms.common.dto.EvlResultGnrlzDto">
+		/** UsptEvlOnlineDao.selectEvlOnlineEvlReusltGnrlz */
+		select a.evl_mfcmm_id 			/*위원명*/
+			 , b.evl_cn  				/*평가내용*/
+			 , a.evl_opinion 			/*개별의견*/
+			 , c.evl_iem_nm 			/*평가항목명*/
+			 , c.evl_iem_cn 			/*세부항목내용*/
+			 , (
+			 	select s3.expert_nm
+			      from uspt_evl_mfcmm s1
+					   inner join uspt_extrc_mfcmm s2
+							   on s1.extrc_mfcmm_id  = s2.extrc_mfcmm_id
+					   inner join uspt_expert s3
+					   		   on s2.expert_id  = s3.expert_id
+				 where s1.evl_mfcmm_id = a.evl_mfcmm_id
+			   ) as evl_mfcmm_nm 				/*전문가명*/
+		 from uspt_evl_mfcmm_result a 				/*위원별 평가결과*/
+			  inner join uspt_evl_iem_result b 		/*항목별 평가결과*/
+					  on a.evl_result_id = b.evl_result_id
+			  inner join uspt_evl_iem_nm c 			/*항목*/
+			 		  on b.evl_iem_id  = c.evl_iem_id
+		where a.evl_trget_id = #{evlTrgetId}
+		  and a.evl_mfcmm_id in (select b.evl_mfcmm_id
+		  						   from uspt_evl_cmit a
+			 						    inner join uspt_evl_mfcmm b on a.evl_cmit_id = b.evl_cmit_id
+								  where a.evl_cmit_id = #{evlCmitId})
+			and c.evl_iem_id = #{evlIemId}
+	</select>
+
+
+	<select id="selectEvlReusltDspthInfo" resultType="aicluster.pms.common.dto.EvlResutlDspthInfoDto">
+		/** UsptEvlOnlineDao.selectEvlReusltDspthInfo */
+		select count(b.evl_trget_id) as dspth_trget_co --통보대상수
+			 , max(a.evl_sttus_cd) as evl_sttus_cd --평가진행상태
+	 		 , fn_cmm_get_code_nm('EVL_STTUS', max(a.evl_sttus_cd)) as evl_sttus_nm
+	 		 , max(a.evl_cmit_id) as evl_cmit_id
+		 from uspt_evl_cmit a
+			  inner join uspt_evl_trget b
+					  on a.sect_id = b.sect_id
+					 and a.evl_step_id = b.evl_step_id
+		where a.evl_cmit_id = #{evlCmitId}
+		  and b.slctn is true
+	</select>
+
+
+	<select id="selectSndngTrgetList" resultType="aicluster.pms.common.dto.EvlResutlSndngTrgetDto">
+		/** UsptEvlOnlineDao.selectSndngTrgetList */
+		select b.evl_trget_id
+			 , c.member_id
+			 , fn_cmm_get_member_nm(c.member_id) as member_nm
+			 , cmmt.enc_email
+			 , cmmt.enc_mobile_no
+		  from uspt_evl_cmit a
+			   inner join uspt_evl_trget b
+					   on a.sect_id = b.sect_id
+					  and a.evl_step_id = b.evl_step_id
+		       inner join uspt_bsns_pblanc_applcnt c
+		      		   on c.apply_id = b.apply_id
+		       left outer join cmmt_member cmmt
+		       				on cmmt.member_id =c.member_id
+		 where a.evl_cmit_id = #{evlCmitId}
+		   and b.slctn is true
+	</select>
+
+</mapper>

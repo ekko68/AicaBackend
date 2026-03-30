@@ -1,0 +1,590 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aicluster.pms.common.dao.UsptExpertDao">
+
+	<select id="selectList" resultType="aicluster.pms.common.entity.UsptExpert">
+		/** UsptExpertDao.selectList */
+		select expert_id
+			 , expert_nm
+			 , gender_cd
+			 , fn_cmm_get_code_nm('GENDER', gender_cd) as gender_nm
+			 , native 			as native_yn
+			 , case when coalesce(native, false) = true then '내국인' else '외국인' end as native_nm
+			 , enc_brthdy
+			 , enc_mbtlnum
+			 , enc_email
+			 , wrc_nm
+			 , dept_nm
+			 , ofcps_nm
+			 , dty_nm
+			 , wrc_adres
+			 , wrc_adres_detail
+			 , wrc_adres_zip
+			 , wrc_telno
+			 , last_univ_nm
+			 , univ_dept_nm
+			 , act_realm_cd
+			 , attachment_group_id
+			 , expert_reqst_process_sttus_cd
+			 , creator_id
+			 , created_dt
+			 , updater_id
+			 , updated_dt
+			 , fn_cmm_get_code_nm('RCEPT_STTUS',expert_reqst_process_sttus_cd) as expert_reqst_process_sttus_nm  /**  전문가신청처리상태명**/
+			 , row_number() over (order by created_dt desc) as rn
+		  from uspt_expert
+		 where 1 = 1
+		   <if test='expertId != null and expertId != ""'>
+		   	and expert_id = #{expertId}
+	   	   </if>
+	   	   <if test='expertNm != null and expertNm != ""'>
+		   	and expert_nm like '%' || #{expertNm} || '%'
+	   	   </if>
+	   	   <if test='wrcNm != null and wrcNm != ""'>
+		   	and wrc_nm like '%' || #{wrcNm} || '%'
+	   	   </if>
+
+	   	   <if test='encBrthdy != null and encBrthdy != ""'>
+		   	and enc_brthdy like = #{encBrthdy}
+	   	   </if>
+	   	   <if test='encMbtlnum != null and encMbtlnum != ""'>
+		   	and enc_mbtlnum = #{encMbtlnum}
+	   	   </if>
+	   	   <if test='encEmail != null and encEmail != ""'>
+		   	and enc_email = #{encEmail}
+	   	   </if>
+	   	   <if test='expertReqstProcessSttusCd != null and expertReqstProcessSttusCd != ""'>
+		   	and expert_reqst_process_sttus_cd = #{expertReqstProcessSttusCd}
+	   	   </if>
+	   	   <if test='reqstDayStart != null and reqstDayStart != "" and reqstDayEnd != null and reqstDayEnd != ""'>
+					and to_char(created_dt,'YYYYMMDD') between #{reqstDayStart} and #{reqstDayEnd}
+		  </if>
+  			<if test="!isExcel">
+				offset #{beginRowNum} -1
+				limit #{itemsPerPage}
+			</if>
+	</select>
+
+
+	<select id="selectListCount" resultType="Long">
+		/** UsptExpertDao.selectListCount */
+		select count(expert_id) as cnt
+		  from uspt_expert
+		 where 1 = 1
+		   <if test='expertId != null and expertId != ""'>
+		   	and expert_id = #{expertId}
+	   	   </if>
+	   	   <if test='expertNm != null and expertNm != ""'>
+		   	and expert_nm like '%' || #{expertNm} || '%'
+	   	   </if>
+	   	   <if test='wrcNm != null and wrcNm != ""'>
+		   	and wrc_nm like '%' || #{wrcNm} || '%'
+	   	   </if>
+	</select>
+
+
+	<!-- 전문가 추출위원리스트 -->
+	<select id="selectListByExtrc" resultType="aicluster.pms.common.entity.UsptExpert">
+		/** UsptExpertDao.selectListByExtrc */
+		select c.expert_id
+			 , c.expert_nm
+			 , c.gender_cd
+			 , c.native 			as native_yn
+			 , c.enc_brthdy
+			 , c.enc_mbtlnum
+			 , c.enc_email
+			 , c.wrc_nm
+			 , c.dept_nm
+			 , c.ofcps_nm
+			 , c.dty_nm
+			 , c.wrc_adres
+			 , c.wrc_adres_detail
+			 , c.wrc_adres_zip
+			 , c.wrc_telno
+			 , c.last_univ_nm
+			 , c.univ_dept_nm
+			 , c.act_realm_cd
+			 , c.attachment_group_id
+			 , c.expert_reqst_process_sttus_cd
+			 , (
+			 	select bb.expert_cl_nm
+			  	  from uspt_expert_cl_mapng aa
+					   inner join uspt_expert_cl bb
+							   on aa.expert_cl_id = bb.expert_cl_id
+				 where aa.expert_id = b.expert_id
+				   and bb.expert_cl_id in (array_to_string(a.expert_cl_id,','))
+			    ) || ' > ' || c.ofcps_nm  as expert_cl_nm /*전문가분야*/
+			 , b.lsn_result_cd
+			 , COALESCE(fn_cmm_get_code_nm('LSN_RESULT', b.lsn_result_cd),'대기중') as lsn_result_nm
+			 , row_number() over (order by b.created_dt desc) as rn
+			 , a.odr_no || '차 추출' as odr_nm
+			 , b.extrc_mfcmm_id			/*추출위원id*/
+		 from uspt_evl_mfcmm_extrc a 											/*평가위원추출조건정보*/
+			  inner join uspt_extrc_mfcmm b										/*추출위원*/
+					  on a.mfcmm_extrc_id = b.mfcmm_extrc_id
+			  inner join uspt_expert c											/*전문가정보*/
+					  on b.expert_id = c.expert_id
+		 where a.evl_cmit_id = #{evlCmitId}
+		   and a.odr_no = #{odrNo}
+
+	   	<if test='lsnResultCd != null and lsnResultCd != ""'>
+	   		and b.lsn_result_cd = #{lsnResultCd}
+	   	</if>
+
+	</select>
+
+	<!-- 전문가 추출위원리스트 -->
+	<select id="selectMfcmmDetail" resultType="aicluster.pms.common.entity.UsptExpert">
+		/** UsptExpertDao.selectMfcmmDetail */
+		select b.expert_id
+			 , b.expert_nm
+			 , b.gender_cd
+			 , b.native 			as native_yn
+			 , b.enc_brthdy
+			 , b.enc_mbtlnum
+			 , b.enc_email
+			 , b.wrc_nm
+			 , b.dept_nm
+			 , b.ofcps_nm
+			 , b.dty_nm
+			 , b.wrc_adres
+			 , b.wrc_adres_detail
+			 , b.wrc_adres_zip
+			 , b.wrc_telno
+			 , b.last_univ_nm
+			 , b.univ_dept_nm
+			 , b.act_realm_cd
+			 , b.attachment_group_id
+			 , b.expert_reqst_process_sttus_cd
+			 , a.extrc_mfcmm_id			/*추출위원id*/
+		 from uspt_extrc_mfcmm a										/*추출위원*/
+			  inner join uspt_expert b											/*전문가정보*/
+					  on a.expert_id = b.expert_id
+		 where a.extrc_mfcmm_id = #{extrcMfcmmId}
+	</select>
+
+
+	<!-- 추출 제외 위원 리스트 -->
+	<select id="selectListByExcl" resultType="aicluster.pms.common.entity.UsptExpert">
+		/** UsptExpertDao.selectListByExcl */
+		select c.expert_id
+			 , c.expert_nm
+			 , c.gender_cd
+			 , c.native 			as native_yn
+			 , c.enc_brthdy
+			 , c.enc_mbtlnum
+			 , c.enc_email
+			 , c.wrc_nm
+			 , c.dept_nm
+			 , c.ofcps_nm
+			 , c.dty_nm
+			 , c.wrc_adres
+			 , c.wrc_adres_detail
+			 , c.wrc_adres_zip
+			 , c.wrc_telno
+			 , c.last_univ_nm
+			 , c.univ_dept_nm
+			 , c.act_realm_cd
+			 , c.attachment_group_id
+			 , c.expert_reqst_process_sttus_cd
+			 , b.excl_resn_cn
+			 , (
+			 	select bb.expert_cl_nm
+			  	  from uspt_expert_cl_mapng aa
+					   inner join uspt_expert_cl bb
+							   on aa.expert_cl_id = bb.expert_cl_id
+				 where aa.expert_id = b.expert_id
+				   and bb.expert_cl_id in (array_to_string(a.expert_cl_id,','))
+			    ) || ' > ' || c.ofcps_nm  as expert_cl_nm /*전문가분야*/
+			 , row_number() over (order by b.created_dt desc) as rn
+			 , a.odr_no || '차 추출' as odr_nm
+		 from uspt_evl_mfcmm_extrc a 											/*평가위원추출조건정보*/
+			  inner join uspt_excl_mfcmm b										/*제외위원*/
+					  on a.mfcmm_extrc_id = b.mfcmm_extrc_id
+			  inner join uspt_expert c											/*전문가정보*/
+			  		  on b.expert_id = c.expert_id
+		 where a.evl_cmit_id = #{evlCmitId}
+		   and a.odr_no = #{odrNo}
+	</select>
+
+	<insert id="insertList">
+		insert into uspt_expert (
+			   expert_id
+			 , expert_nm
+			 , gender_cd
+			 , native
+			 , enc_brthdy
+			 , enc_mbtlnum
+			 , enc_email
+			 , wrc_nm
+			 , dept_nm
+			 , ofcps_nm
+			 , dty_nm
+			 , wrc_adres
+			 , wrc_adres_detail
+			 , wrc_adres_zip
+			 , wrc_telno
+			 , last_univ_nm
+			 , univ_dept_nm
+			 , act_realm_cd
+			 , attachment_group_id
+			 , expert_reqst_process_sttus_cd
+			 , creator_id
+			 , created_dt
+			 , updater_id
+			 , updated_dt
+		) values
+		<foreach item="item" index="index" collection="list" separator=",">
+				(
+				   #{item.expertId}
+				 , #{item.expertNm}
+				 , #{item.genderCd}
+				 , #{item.nativeYn}
+				 , #{item.encBrthdy}
+				 , #{item.encMbtlnum}
+				 , #{item.encEmail}
+				 , #{item.wrcNm}
+				 , #{item.deptNm}
+				 , #{item.ofcpsNm}
+				 , #{item.dtyNm}
+				 , #{item.wrcAdres}
+				 , #{item.wrcAdresDetail}
+				 , #{item.wrcAdresZip}
+				 , #{item.wrcTelno}
+				 , #{item.lastUnivNm}
+				 , #{item.univDeptNm}
+				 , #{item.actRealmCd}
+				 , #{item.attachmentGroupId}
+				 , #{item.expertReqstProcessSttusCd}
+				 , #{item.creatorId}
+				 , #{item.createdDt}
+				 , #{item.updaterId}
+				 , #{item.updatedDt}
+				)
+		</foreach>
+	</insert>
+
+<!-- ********************************************************전문가 신청 front ***********************************************************-->
+	<insert id="insert">
+		insert into uspt_expert (
+			   expert_id
+			 , expert_nm
+			 , gender_cd
+			 , native
+			 , enc_brthdy
+			 , enc_mbtlnum
+			 , enc_email
+			 , wrc_nm
+			 , dept_nm
+			 , ofcps_nm
+			 , dty_nm
+			 , wrc_adres
+			 , wrc_adres_detail
+			 , wrc_adres_zip
+			 , wrc_telno
+			 , last_univ_nm
+			 , univ_dept_nm
+			 , act_realm_cd
+			 , attachment_group_id
+			 , expert_reqst_process_sttus_cd
+			 , creator_id
+			 , created_dt
+			 , updater_id
+			 , updated_dt
+			 , member_id
+		) values
+				(
+				   #{expertId}
+				 , #{expertNm}
+				 , #{genderCd}
+				 , #{nativeYn}
+				 , #{encBrthdy}
+				 , #{encMbtlnum}
+				 , #{encEmail}
+				 , #{wrcNm}
+				 , #{deptNm}
+				 , #{ofcpsNm}
+				 , #{dtyNm}
+				 , #{wrcAdres}
+				 , #{wrcAdresDetail}
+				 , #{wrcAdresZip}
+				 , #{wrcTelno}
+				 , #{lastUnivNm}
+				 , #{univDeptNm}
+				 , #{actRealmCd}
+				 , #{attachmentGroupId}
+				 , #{expertReqstProcessSttusCd}
+				 , #{creatorId}
+				 , #{createdDt}
+				 , #{updaterId}
+				 , #{updatedDt}
+				 , #{memberId}
+				)
+	</insert>
+
+	<!-- memberId로 전문가 등록 여부  -->
+	<select id="selectExpertRegCnt" resultType="int">
+		/** UsptExpertDao.selectListCount */
+		select count(expert_id) as cnt
+		  from uspt_expert
+		 where member_id = #{memberId}
+	</select>
+
+<!-- ********************************************************전문가 신청 관리 admin *********************************************************** -->
+	<!-- 전문가신청관리 목록 총건수 조회  -->
+	<select id="selectExpertListCnt" resultType="long">
+		/** UsptExpertDao.selectExpertReqstListCnt */
+		select  count(1)
+		from uspt_expert
+		 where 1 = 1
+	   	   <if test='expertNm != null and expertNm != ""'>
+		   		and expert_nm like '%' || #{expertNm} || '%'
+	   	   </if>
+	   	   <if test='wrcNm != null and wrcNm != ""'>
+		   		and wrc_nm like '%' || #{wrcNm} || '%'
+	   	   </if>
+	   	   <if test='expertReqstProcessSttusCd != null and expertReqstProcessSttusCd != ""'>
+		   		and expert_reqst_process_sttus_cd = #{expertReqstProcessSttusCd}
+	   	   </if>
+	   	   <if test='reqstDayStart != null and reqstDayStart != "" and reqstDayEnd != null and reqstDayEnd != ""'>
+				and to_char(created_dt,'YYYYMMDD') between #{reqstDayStart} and #{reqstDayEnd}
+		  </if>
+	</select>
+
+	<!-- 전문가신청관리 목록 조회  -->
+	<select id="selectExpertList" resultType="aicluster.pms.common.entity.UsptExpert">
+		/** UsptExpertDao.getExpertReqstList */
+		select  expert_id								/** 전문가ID */
+				, expert_reqst_process_sttus_cd	/*처리상태코드*/
+			 	, expert_nm								/*전문가명*/
+			 	 , gender_cd							/*성별코드(G:GENDER) */
+				 , native 			as native_yn		/*내국인여부 */
+			 	, wrc_nm									/*직장명*/
+			 	, ofcps_nm   							/**직위명 */
+			 	, created_dt 							/*신청일**/
+		from uspt_expert
+		 where 1 = 1
+	   	   <if test='expertNm != null and expertNm != ""'>
+		   		and expert_nm like '%' || #{expertNm} || '%'
+	   	   </if>
+	   	   <if test='wrcNm != null and wrcNm != ""'>
+		   		and wrc_nm like '%' || #{wrcNm} || '%'
+	   	   </if>
+	   	    <if test='expertReqstProcessSttusCd != null and expertReqstProcessSttusCd != ""'>
+		   		and expert_reqst_process_sttus_cd = #{expertReqstProcessSttusCd}
+	   	   </if>
+	   	   <if test='reqstDayStart != null and reqstDayStart != "" and reqstDayEnd != null and reqstDayEnd != ""'>
+				and to_char(created_dt,'YYYYMMDD') between #{reqstDayStart} and #{reqstDayEnd}
+		  </if>
+		   offset #{beginRowNum} -1
+		   limit #{itemsPerPage}
+	</select>
+
+	<!-- 전문가신청관리 전문가 정보 단건 조회 -->
+	<select id="selectOneExpert" resultType="aicluster.pms.common.entity.UsptExpert">
+		/** UsptExpertDao.getExpertReqstList */
+		select   expert_id
+				 , expert_nm
+				 , gender_cd
+				 , fn_cmm_get_code_nm('GENDER', gender_cd) as gender_nm
+				 , native 			as native_yn
+				 , case when coalesce(native, false) = true then '내국인' else '외국인' end as native_nm
+				 , enc_brthdy
+				 , enc_mbtlnum
+				 , enc_email
+				 , wrc_nm
+				 , dept_nm
+				 , ofcps_nm
+				 , dty_nm
+				 , wrc_adres
+				 , wrc_adres_detail
+				 , wrc_adres_zip
+				 , wrc_telno
+				 , last_univ_nm
+				 , univ_dept_nm
+				 , act_realm_cd
+				 , attachment_group_id
+				 , expert_reqst_process_sttus_cd
+				 , creator_id
+				 , created_dt
+				 , updater_id
+				 , updated_dt
+				 , fn_cmm_get_code_nm('RCEPT_STTUS',expert_reqst_process_sttus_cd) as expert_reqst_process_sttus_nm  /**  전문가신청처리상태명**/
+				 , to_char(created_dt ,'YYYY-MM-DD')  as  reg_dt             /** 생성일시**/
+		from uspt_expert
+	  where  expert_id =  #{expertId}
+	</select>
+
+	<!-- 전문가신청관리 승인, 반려 변경  -->
+	<update id="updateExpertReturn">
+	/** UsptExpertDao.updateExpertReqstReturn */
+		update uspt_expert
+			 set  expert_reqst_process_sttus_cd = #{expertReqstProcessSttusCd}
+			      , updater_id                = #{updaterId}
+				  , updated_dt                = #{updatedDt}
+        where  expert_id = #{expertId}
+	</update>
+
+	<!-- 전문가정보 변경-->
+	<update id="update">
+	/** UsptExpertDao.update */
+		update uspt_expert
+			 set expert_nm                 = #{expertNm}
+				, gender_cd                 = #{genderCd}
+				, native                 	   = #{nativeYn}
+				, enc_brthdy                = #{encBrthdy}
+				, enc_mbtlnum               = #{encMbtlnum}
+				, enc_email                 = #{encEmail}
+				 ,wrc_nm                    = #{wrcNm}
+				, dept_nm                   = #{deptNm}
+				, ofcps_nm                  = #{ofcpsNm}
+				, dty_nm                    = #{dtyNm}
+				, wrc_adres                 = #{wrcAdres}
+				, wrc_adres_detail          = #{wrcAdresDetail}
+				, wrc_adres_zip             = #{wrcAdresZip}
+				, wrc_telno                 = #{wrcTelno}
+				, last_univ_nm              = #{lastUnivNm}
+				, univ_dept_nm              = #{univDeptNm}
+				, act_realm_cd              = #{actRealmCd}
+				, attachment_group_id       = #{attachmentGroupId}
+				, expert_reqst_process_sttus_cd = #{expertReqstProcessSttusCd}
+				, updater_id                = #{updaterId}
+				, updated_dt                = #{updatedDt}
+		where  expert_id = #{expertId}
+	</update>
+
+	<!-- 전문가정보 삭제-->
+	<delete  id="delete">
+	/** UsptExpertDao.delete */
+		delete from uspt_expert
+		where  expert_id = #{expertId}
+	</delete>
+
+	<!-- 전문가 매칭이력 건수-->
+	<select id="selectExpertMatchHistListCnt" resultType="long">
+		/** UsptExpertDao.selectExpertMatchHistListCnt */
+		select count(1) as cnt
+		from (
+				select ex.reg_dt						 /*매칭일*/
+						, bsns.bsns_year				/*사업연도*/
+						, bsns.bsns_nm				/*사업명*/
+						, bsns.pblanc_id 				/*공고ID*/
+						, bsns.pblanc_nm			/*공고명*/
+						, bsns.pblanc_no 			/*공고번호*/
+						, ex.act_realm 					/*활동분양*/
+						, ex.sect_id 						/*분과ID*/
+						, evl.rcept_odr 				/*접수차수*/
+				from	(   select a.evl_cmit_id 												/*평가위원회ID*/
+									, a.sect_id 														/*분과ID*/
+									, to_char(b.created_dt,'yyyymmdd') as reg_dt 	/*매칭일*/
+							       , '평가위원'  			as act_realm 						/*활동분양*/
+							from  uspt_evl_cmit  a 					/*평가위원회*/
+				  	 inner join uspt_evl_mfcmm  b 				/*평가위원*/
+							   on a.evl_cmit_id = b.evl_cmit_id
+					  	     and a.evl_sttus_cd = 'EVST03' 		/*평가완료*/
+					 inner join uspt_expert  c  					/*전문가*/
+							   on  b.expert_id  = c.expert_id
+							  and c.expert_id=#{expertId}
+						) ex
+				inner join (
+							select  a.pblanc_id 						/*공고ID*/
+							 		 , a.evl_plan_id 						/*평가계획ID*/
+							   		, a.evl_sttus_cd 						/*평가진행상태코드(G:EVL_STTUS)*/
+							   		, a.rcept_odr 							/*접수차수*/
+							   		, b.sect_id 								/*분과ID*/
+							 from uspt_evl_plan a 					/*평가계획*/
+					 inner join uspt_sect  b 							/*분과정보*/
+								on a.evl_plan_id = b.evl_plan_id
+							  and a.evl_sttus_cd = 'EVST03' 	/*평가완료*/
+						) evl
+					on ex.sect_id = evl.sect_id
+				inner join (
+							select a.bsns_cd 				/*사업코드*/
+									, a.bsns_year			/*사업연도*/
+									, a.bsns_nm				/*사업명*/
+									, b.pblanc_id 			/*공고ID*/
+									, b.pblanc_nm			/*공고명*/
+									, b.pblanc_no 		/*공고번호*/
+							from uspt_bsns a 				/*사업*/
+					inner join  uspt_bsns_pblanc b /*사업공고*/
+					 		 on  a.bsns_cd = b.bsns_cd
+					) bsns
+					on evl.pblanc_id = bsns.pblanc_id
+				group by 	ex.reg_dt				 /*매칭일*/
+						, bsns.bsns_year				/*사업연도*/
+						, bsns.bsns_nm				/*사업명*/
+						, bsns.pblanc_id 				/*공고ID*/
+						, bsns.pblanc_nm			/*공고명*/
+						, bsns.pblanc_no 			/*공고번호*/
+						, ex.act_realm 					/*활동분양*/
+						, ex.sect_id 						/*분과ID*/
+						, evl.rcept_odr 				/*접수차수*/
+				) totCnt
+	</select>
+
+	<!-- 전문가 매칭이력 list-->
+	<select id="selectExpertMatchHistList" resultType="aicluster.pms.common.entity.UsptExpert">
+	/** UsptExpertDao.selectExpertMatchHistList */
+		select ex.reg_dt						 /*매칭일*/
+				, bsns.bsns_year				/*사업연도*/
+				, bsns.bsns_nm				/*사업명*/
+				, bsns.pblanc_id 				/*공고ID*/
+				, bsns.pblanc_nm			/*공고명*/
+				, bsns.pblanc_no 			/*공고번호*/
+				, ex.act_realm 					/*활동분양*/
+				, ex.sect_id 						/*분과ID*/
+				, evl.rcept_odr 				/*접수차수*/
+				 , row_number() over (order by ex.reg_dt desc) as rn
+		from	(   select a.evl_cmit_id 												/*평가위원회ID*/
+							, a.sect_id 														/*분과ID*/
+							, to_char(b.created_dt,'yyyymmdd') as reg_dt 	/*매칭일*/
+					       , '평가위원'  			as act_realm 						/*활동분양*/
+					from  uspt_evl_cmit  a 					/*평가위원회*/
+		  	 inner join uspt_evl_mfcmm  b 				/*평가위원*/
+					   on a.evl_cmit_id = b.evl_cmit_id
+			  	     and a.evl_sttus_cd = 'EVST03' 		/*평가완료*/
+			 inner join uspt_expert  c  					/*전문가*/
+					   on  b.expert_id  = c.expert_id
+					  and c.expert_id=#{expertId}
+				) ex
+		inner join (
+					select  a.pblanc_id 						/*공고ID*/
+					 		 , a.evl_plan_id 						/*평가계획ID*/
+					   		, a.evl_sttus_cd 						/*평가진행상태코드(G:EVL_STTUS)*/
+					   		, a.rcept_odr 							/*접수차수*/
+					   		, b.sect_id 								/*분과ID*/
+					 from uspt_evl_plan a 					/*평가계획*/
+			 inner join uspt_sect  b 							/*분과정보*/
+						on a.evl_plan_id = b.evl_plan_id
+					  and a.evl_sttus_cd = 'EVST03' 	/*평가완료*/
+				) evl
+			on ex.sect_id = evl.sect_id
+		inner join (
+					select a.bsns_cd 				/*사업코드*/
+							, a.bsns_year			/*사업연도*/
+							, a.bsns_nm				/*사업명*/
+							, b.pblanc_id 			/*공고ID*/
+							, b.pblanc_nm			/*공고명*/
+							, b.pblanc_no 		/*공고번호*/
+					from uspt_bsns a 				/*사업*/
+			inner join  uspt_bsns_pblanc b /*사업공고*/
+			 		 on  a.bsns_cd = b.bsns_cd
+			) bsns
+			on evl.pblanc_id = bsns.pblanc_id
+		group by 	ex.reg_dt				 /*매칭일*/
+				, bsns.bsns_year				/*사업연도*/
+				, bsns.bsns_nm				/*사업명*/
+				, bsns.pblanc_id 				/*공고ID*/
+				, bsns.pblanc_nm			/*공고명*/
+				, bsns.pblanc_no 			/*공고번호*/
+				, ex.act_realm 					/*활동분양*/
+				, ex.sect_id 						/*분과ID*/
+				, evl.rcept_odr 				/*접수차수*/
+		<if test="!isExcel">
+			offset #{beginRowNum} -1
+			limit #{itemsPerPage}
+		</if>
+	</select>
+
+
+</mapper>

@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aicluster.pms.common.dao.UsptBsnsExcclcDao">
+
+	<insert id="insert">
+		/** UsptBsnsExcclcDao.insert */
+		insert into uspt_bsns_excclc
+			(
+				bsns_excclc_id
+				, bsns_cnvn_id
+				, task_reqst_wct_id
+				, excut_sbsidy
+				, excut_bsnm_alotm
+				, excut_cnvn_totamt
+				, attachment_group_id
+				, creator_id
+				, created_dt
+				, updater_id
+				, updated_dt
+			) values (
+				#{bsnsExcclcId}
+				, #{bsnsCnvnId}
+				, #{taskReqstWctId}
+				, #{excutSbsidy}
+				, #{excutBsnmAlotm}
+				, #{excutCnvnTotamt}
+				, #{attachmentGroupId}
+				, #{creatorId}
+				, #{createdDt}
+				, #{updaterId}
+				, #{updatedDt}
+			)
+	</insert>
+
+	<update id="update">
+		/** UsptBsnsExcclcDao.update */
+		update uspt_bsns_excclc
+		set
+			excut_sbsidy			= #{excutSbsidy}
+			, excut_bsnm_alotm		= #{excutBsnmAlotm}
+			, excut_cnvn_totamt		= #{excutCnvnTotamt}
+			, attachment_group_id	= #{attachmentGroupId}
+			, updater_id			= #{updaterId}
+			, updated_dt			= #{updatedDt}
+		where
+			bsns_excclc_id = #{bsnsExcclcId}
+	</update>
+
+
+	<select id="select" resultType="aicluster.pms.common.entity.UsptBsnsExcclc">
+		/** UsptBsnsExcclcDao.select */
+		select
+			bsns_excclc_id
+			, bsns_cnvn_id
+			, task_reqst_wct_id
+			, excut_sbsidy
+			, excut_bsnm_alotm
+			, excut_cnvn_totamt
+			, attachment_group_id
+			, creator_id
+			, created_dt
+			, updater_id
+			, updated_dt
+		from uspt_bsns_excclc
+		where
+			bsns_cnvn_id = #{bsnsCnvnId}
+			and task_reqst_wct_id = #{taskReqstWctId}
+	</select>
+
+</mapper>

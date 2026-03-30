@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aicluster.pms.common.dao.UsptBsnsApplyRealmDao">
+
+	<select id="selectList" resultType="aicluster.pms.common.entity.UsptBsnsApplyRealm">
+		/** UsptBsnsApplyRealmDao.selectList */
+		select
+			bsns_cd
+			, apply_realm_id
+			, apply_realm_nm
+		from uspt_bsns_apply_realm
+		where
+			bsns_cd = #{bsnsCd}
+	</select>
+
+
+	<insert id="insert">
+		/** UsptBsnsApplyRealmDao.insert */
+		insert into uspt_bsns_apply_realm
+								(
+									apply_realm_id
+									, bsns_cd
+									, apply_realm_nm
+									, creator_id
+									, created_dt
+									, updater_id
+									, updated_dt
+								)
+						values	(
+									#{applyRealmId}
+									, #{bsnsCd}
+									, #{applyRealmNm}
+									, #{creatorId}
+									, #{createdDt}
+									, #{updaterId}
+									, #{updatedDt}
+								)
+	</insert>
+
+	<insert id="insertList">
+		/** UsptBsnsApplyRealmDao.insertList */
+		insert into uspt_bsns_apply_realm
+				(
+					apply_realm_id
+					, bsns_cd
+					, apply_realm_nm
+					, creator_id
+					, created_dt
+					, updater_id
+					, updated_dt
+				) values
+			<foreach item="item" collection="list" separator=",">
+				(
+					#{item.applyRealmId}
+					, #{item.bsnsCd}
+					, #{item.applyRealmNm}
+					, #{item.creatorId}
+					, #{item.createdDt}
+					, #{item.updaterId}
+					, #{item.updatedDt}
+				)
+			</foreach>
+	</insert>
+
+
+	<update id="update">
+		/** UsptBsnsApplyRealmDao.update */
+		update uspt_bsns_apply_realm
+		set
+			apply_realm_nm = #{applyRealmNm}
+			, updater_id = #{updaterId}
+			, updated_dt = #{updatedDt}
+		where
+			apply_realm_id = #{applyRealmId}
+			and bsns_cd = #{bsnsCd}
+	</update>
+
+
+	<delete id="delete">
+		/** UsptBsnsApplyRealmDao.delete */
+		delete from uspt_bsns_apply_realm
+		where
+			apply_realm_id = #{applyRealmId}
+			and bsns_cd = #{bsnsCd}
+	</delete>
+
+</mapper>

@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aicluster.batch.common.dao.CmmtMemberDayStatsDao">
+
+	<select id="selectTotalMbrCnt" resultType="aicluster.batch.common.dto.MemberStatsItem">
+	<![CDATA[
+		/** CmmtMemberDayStatsDao.selectTotalMbrCnt */
+		select
+			b.member_type
+			,COALESCE(a.cnt, 0) as cnt
+		from
+			(	select
+					member_type
+					,count(*) as cnt
+				from cmmt_member
+				where
+					member_st != 'SECESSION'
+					and created_dt <= to_timestamp(#{ymd} || '235959', 'yyyymmddhh24miss')
+				group by
+					member_type
+			) a
+			right join (select code as member_type from cmmt_code where code_group = 'MEMBER_TYPE' and code_type = 'PORTAL') b
+			on (a.member_type = b.member_type )
+	]]>
+	</select>
+
+	<select id="selectJoinMbrCnt" resultType="aicluster.batch.common.dto.MemberStatsItem">
+		/** CmmtMemberDayStatsDao.selectJoinMbrCnt */
+		select
+			b.member_type
+			,COALESCE(a.cnt, 0) as cnt
+		from
+			(	select
+					member_type
+					,count(*) as cnt
+				from cmmt_member
+				where
+					member_st != 'SECESSION'
+					and created_dt
+						between to_timestamp(#{ymd} || '000000', 'yyyymmddhh24miss') and to_timestamp(#{ymd} || '235959', 'yyyymmddhh24miss')
+				group by
+					member_type
+			) a
+			right join (select code as member_type from cmmt_code where code_group = 'MEMBER_TYPE' and code_type = 'PORTAL') b
+			on (a.member_type = b.member_type )
+	</select>
+
+	<select id="selectSecessionMbrCnt" resultType="aicluster.batch.common.dto.MemberStatsItem">
+		/** CmmtMemberDayStatsDao.selectSecessionMbrCnt */
+		select
+			b.member_type
+			,COALESCE(a.cnt, 0) as cnt
+		from
+			(	select
+					member_type
+					,count(*) as cnt
+				from cmmt_member
+				where
+					member_st = 'SECESSION'
+					and member_st_dt
+						between to_timestamp(#{ymd} || '000000', 'yyyymmddhh24miss') and to_timestamp(#{ymd} || '235959', 'yyyymmddhh24miss')
+				group by
+					member_type
+			) a
+			right join (select code as member_type from cmmt_code where code_group = 'MEMBER_TYPE' and code_type = 'PORTAL') b
+			on (a.member_type = b.member_type )
+	</select>
+
+	<select id="selectDormantMbrCnt" resultType="aicluster.batch.common.dto.MemberStatsItem">
+		/** CmmtMemberDayStatsDao.selectDormantMbrCnt */
+		select
+			b.member_type
+			,COALESCE(a.cnt, 0) as cnt
+		from
+			(	select
+					member_type
+					,count(*) as cnt
+				from cmmt_member
+				where
+					member_st = 'DORMANT'
+					and member_st_dt
+						between to_timestamp(#{ymd} || '000000', 'yyyymmddhh24miss') and to_timestamp(#{ymd} || '235959', 'yyyymmddhh24miss')
+				group by
+					member_type
+			) a
+			right join (select code as member_type from cmmt_code where code_group = 'MEMBER_TYPE' and code_type = 'PORTAL') b
+			on (a.member_type = b.member_type )
+	</select>
+
+	<select id="selectBlackMbrCnt" resultType="aicluster.batch.common.dto.MemberStatsItem">
+		/** CmmtMemberDayStatsDao.selectBlackMbrCnt */
+		select
+			b.member_type
+			,COALESCE(a.cnt, 0) as cnt
+		from
+			(	select
+					member_type
+					,count(*) as cnt
+				from cmmt_member
+				where
+					member_st = 'BLACK'
+					and member_st_dt
+						between to_timestamp(#{ymd} || '000000', 'yyyymmddhh24miss') and to_timestamp(#{ymd} || '235959', 'yyyymmddhh24miss')
+				group by
+					member_type
+			) a
+			right join (select code as member_type from cmmt_code where code_group = 'MEMBER_TYPE' and code_type = 'PORTAL') b
+			on (a.member_type = b.member_type )
+	</select>
+
+	<update id="upsert">
+		/** CmmtMemberDayStatsDao.upsert */
+		insert into cmmt_member_day_stats (
+			 stats_ymd
+			,member_type
+			,week_day_nm
+			,total_mbr_cnt
+			,join_mbr_cnt
+			,secession_mbr_cnt
+			,dormant_mbr_cnt
+			,black_mbr_cnt
+			,created_dt
+		) values
+		<foreach item="item" collection="list" separator=",">
+		(
+			 #{item.statsYmd}
+			,#{item.memberType}
+			,#{item.weekDayNm}
+			,#{item.totalMbrCnt}
+			,#{item.joinMbrCnt}
+			,#{item.secessionMbrCnt}
+			,#{item.dormantMbrCnt}
+			,#{item.blackMbrCnt}
+			,#{item.createdDt}
+		)
+		</foreach>
+		on conflict (stats_ymd, member_type)
+		do update set
+			 week_day_nm       = excluded.week_day_nm
+			,total_mbr_cnt     = excluded.total_mbr_cnt
+			,join_mbr_cnt      = excluded.join_mbr_cnt
+			,secession_mbr_cnt = excluded.secession_mbr_cnt
+			,dormant_mbr_cnt   = excluded.dormant_mbr_cnt
+			,black_mbr_cnt     = excluded.black_mbr_cnt
+			,created_dt        = excluded.created_dt
+	</update>
+
+</mapper>

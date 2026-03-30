@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aicluster.pms.common.dao.UsptEvlObjcProcessHistDao">
+
+	<insert id="insert">
+		/** UsptEvlObjcProcessHistDao.insert */
+		insert into uspt_evl_objc_process_hist
+			(
+				evl_objc_process_hist_id
+				, evl_slctn_objc_reqst_id
+				, slctn_objc_process_sttus_cd
+				, resn_cn
+				, creator_id
+				, created_dt
+			) values (
+				#{evlObjcProcessHistId}
+				, #{evlSlctnObjcReqstId}
+				, #{slctnObjcProcessSttusCd}
+				, #{resnCn}
+				, #{creatorId}
+				, #{createdDt}
+			)
+	</insert>
+
+	<select id="selectList" resultType="aicluster.pms.common.dto.HistDto">
+		/** UsptEvlObjcProcessHistDao.selectList */
+		select
+			fn_cmm_get_code_nm('${@aicluster.pms.common.util.Code@LSOPS_CODE_GROUP}', ueoph.slctn_objc_process_sttus_cd) as process_sttus
+			, ueoph.resn_cn
+			, ueoph.created_dt
+			, ci.member_nm
+			, ci.login_id
+			, row_number() over (order by ueoph.created_dt desc) as rn
+		from uspt_evl_objc_process_hist ueoph
+			inner join cmmt_insider ci
+				on ci.member_id = ueoph.creator_id
+		where
+			ueoph.evl_slctn_objc_reqst_id = #{evlSlctnObjcReqstId}
+	</select>
+
+
+	<select id="selectRejectReason" resultType="aicluster.pms.common.dto.RejectDto">
+		/** UsptEvlObjcProcessHistDao.selectRejectReason */
+		select
+			distinct on(evl_slctn_objc_reqst_id) evl_slctn_objc_reqst_id
+			, resn_cn				as reject_reason_cn
+			, created_dt
+		from uspt_evl_objc_process_hist
+		where
+			evl_slctn_objc_reqst_id = #{evlSlctnObjcReqstId}
+			and slctn_objc_process_sttus_cd = '${@aicluster.pms.common.util.Code@LSOPS_02_CODE_GROUP}'
+		order by evl_slctn_objc_reqst_id, created_dt desc
+	</select>
+
+</mapper>

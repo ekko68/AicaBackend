@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aicluster.pms.common.dao.UsptBsnsApplyMberTypeDao">
+
+	<insert id="insert">
+		/** UsptBsnsApplyMberTypeDao.insert */
+		insert into uspt_bsns_apply_mber_type
+									(
+										bsns_cd
+										, apply_mber_type_cd
+										, creator_id
+										, created_dt
+									)
+							values	(
+										#{bsnsCd}
+										, #{applyMberTypeCd}
+										, #{creatorId}
+										, #{createdDt}
+									)
+	</insert>
+
+	<insert id="insertList">
+		/** UsptBsnsApplyMberTypeDao.insertList */
+		insert into uspt_bsns_apply_mber_type
+			(
+				bsns_cd
+				, apply_mber_type_cd
+				, creator_id
+				, created_dt
+			) values
+		<foreach item="item" collection="list" separator=",">
+			(
+				#{item.bsnsCd}
+				, #{item.applyMberTypeCd}
+				, #{item.creatorId}
+				, #{item.createdDt}
+			)
+		</foreach>
+	</insert>
+
+
+	<delete id="deleteAll">
+		/** UsptBsnsApplyMberTypeDao.deleteAll */
+		delete from uspt_bsns_apply_mber_type
+		where
+			bsns_cd = #{bsnsCd}
+	</delete>
+
+
+	<select id="selectList" resultType="aicluster.pms.common.entity.UsptBsnsApplyMberType">
+		/** UsptBsnsApplyMberTypeDao.selectList */
+		select
+			cc.code				as apply_mber_type_cd
+			, cc.code_nm		as apply_mber_type_nm
+			, case when ubam.bsns_cd is null then false else true end as is_checked
+		from cmmt_code cc
+			left outer join uspt_bsns_apply_mber_type ubam
+				on ubam.apply_mber_type_cd = cc.code
+				and ubam.bsns_cd = #{bsnsCd}
+		where
+			cc.code_group = '${@aicluster.pms.common.util.Code@MBR_CODE_GROUP}'
+			and cc.code_type = '${@aicluster.pms.common.util.Code@MBR_CODE_TYPE}'
+			and cc.enabled = true
+		order by cc.code_type desc, cc.sort_order
+
+	</select>
+
+</mapper>

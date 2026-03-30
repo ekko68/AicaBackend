@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aicluster.pms.common.dao.UsptExpertClDao">
+
+	<select id="selectExpertClfcTreeList" resultType="aicluster.pms.common.entity.UsptExpertCl">
+	/** UsptExpertClDao.selectExpertClfcTreeList */
+	 with recursive uspt_expert_cl_tree
+ 		as (
+           select  g.expert_cl_id
+           			 , g.parnts_expert_cl_id
+           			 , g.expert_cl_nm
+           			 , g.sort_ordr_no
+           			 , 0 AS level
+           			 ,  array['1'||LPAD(CAST(g.sort_ordr_no AS TEXT), 3, '0')] as path
+           			 , false	AS cycle
+           	 from  uspt_expert_cl g
+          	where  g.parnts_expert_cl_id IS NULL
+          	   and g.enabled = true
+          union all
+           select e.expert_cl_id
+          		  , e.parnts_expert_cl_id
+          		  , e.expert_cl_nm
+          		  , ut.level + 1 AS level
+          		  , e.sort_ordr_no
+          		  , ut.path||cast((ut.level + 1) as text)||lpad(cast(e.sort_ordr_no as text), 3, '0') as path
+		          , cast((ut.level + 1) as text)||lpad(cast(e.sort_ordr_no as text), 3, '0') = any(path) as cycle
+         	 from uspt_expert_cl_tree ut
+              inner join uspt_expert_cl e
+                 on ut.expert_cl_id = e.parnts_expert_cl_id
+                and e.enabled = true
+        )
+        select expert_cl_id
+             , parnts_expert_cl_id
+            -- , expert_cl_nm
+             , lpad('', level) || expert_cl_nm as expert_cl_nm
+             , sort_ordr_no
+             , level
+             , path
+             , cycle
+         from uspt_expert_cl_tree
+         order by path
+	</select>
+
+	<select id="selectList" resultType="aicluster.pms.common.entity.UsptExpertCl">
+		/** UsptExpertClDao.selectList */
+		select
+		  	  expert_cl_id
+			, parnts_expert_cl_id
+			, expert_cl_nm
+			, sort_ordr_no
+			, enabled
+			, creator_id
+			, created_dt
+			, updater_id
+			, updated_dt
+		from uspt_expert_cl
+		where parnts_expert_cl_id = #{expertClId}
+	</select>
+
+	<!-- 전문가 분류조회_부모전문가분류 -->
+	<select id="selectParntsExpertClIdList" resultType="aicluster.pms.common.entity.UsptExpertCl">
+		/** UsptExpertClDao.selectParntsExpertClIdList */
+		select  a.parnts_expert_cl_id
+		        , b.expert_cl_nm
+		 from (
+					select parnts_expert_cl_id
+					from uspt_expert_cl
+					where parnts_expert_cl_id is not null
+					group by parnts_expert_cl_id
+				 ) a
+		inner join uspt_expert_cl b
+	      on a.parnts_expert_cl_id = b.expert_cl_id
+	      order by 	a.parnts_expert_cl_id
+	</select>
+
+
+	<!-- 전문가 분류조회_전문가분류 -->
+	<select id="selectExpertClIdList" resultType="aicluster.pms.common.entity.UsptExpertCl">
+		/** UsptExpertClDao.selectParntsExpertClIdList */
+		   select expert_cl_id
+			      , expert_cl_nm
+			from uspt_expert_cl
+			where parnts_expert_cl_id = #{expertClId}
+			order by expert_cl_id
+	</select>
+
+	<insert id="insertExpertCl">
+		/** UsptExpertClDao.insert */
+		insert into uspt_expert_cl
+			(
+				  expert_cl_id
+				, parnts_expert_cl_id
+				, expert_cl_nm
+				, sort_ordr_no
+				, enabled
+				, creator_id
+				, created_dt
+				, updater_id
+				, updated_dt
+			)
+			values
+			(
+				  #{expertClId}
+				, #{parntsExpertClId}
+				, #{expertClNm}
+				, #{sortOrdrNo}
+				, ${enabled}
+				, #{creatorId}
+				, #{createdDt}
+				, #{updaterId}
+				, #{updatedDt}
+				)
+	</insert>
+
+	<update id="updateExpertCl">
+		/** UsptExpertClDao.updateExpertCl */
+		update uspt_expert_cl
+		set   parnts_expert_cl_id 	= #{parntsExpertClId}
+			, expert_cl_nm		  	= #{expertClNm}
+			, sort_ordr_no			= #{sortOrdrNo}
+			, enabled				= ${enabled}
+			, updater_id			= #{updaterId}
+			, updated_dt			= #{updatedDt}
+		where expert_cl_id = #{expertClId}
+
+	</update>
+
+	<delete id="deleteExpertCl">
+		/** UsptExpertClDao.deleteExpertCl */
+		delete from uspt_expert_cl
+		where expert_cl_id = #{expertClId}
+	</delete>
+
+	<delete id="deleteExpertClParnts">
+		/** UsptExpertClDao.deleteExpertClParnts */
+		delete from uspt_expert_cl
+		where parnts_expert_cl_id = #{expertClId}
+	</delete>
+
+</mapper>

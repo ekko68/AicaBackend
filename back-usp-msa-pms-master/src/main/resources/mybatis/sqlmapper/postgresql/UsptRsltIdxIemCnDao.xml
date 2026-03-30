@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aicluster.pms.common.dao.UsptRsltIdxIemCnDao">
+	<insert id="insert">
+		/** UsptRsltIdxIemCnDao.insert */
+		insert into uspt_rslt_idx_iem_cn
+			(
+				rslt_idx_iem_cn_id
+				, rslt_idx_iem_id
+				, rslt_idx_detail_iem_id
+				, rslt_idx_std_iem_id
+				, rslt_idx_iem_cn
+				, creator_id
+				, created_dt
+				, updater_id
+				, updated_dt
+			) values (
+				#{rsltIdxIemCnId}
+				, #{rsltIdxIemId}
+				, #{rsltIdxDetailIemId}
+				, #{rsltIdxStdIemId}
+				, #{rsltIdxIemCn}
+				, #{creatorId}
+				, #{createdDt}
+				, #{updaterId}
+				, #{updatedDt}
+			)
+	</insert>
+
+	<update id="update">
+		/** UsptRsltIdxIemCnDao.update */
+		update uspt_rslt_idx_iem_cn
+		set
+			rslt_idx_iem_cn = #{rsltIdxIemCn}
+			, updater_id = #{updaterId}
+			, updated_dt = #{updatedDt}
+		where
+			rslt_idx_iem_cn_id = #{rsltIdxIemCnId}
+	</update>
+
+	<select id="select" resultType="aicluster.pms.common.entity.UsptRsltIdxIemCn">
+		/** UsptRsltIdxIemCnDao.select */
+		select
+			rslt_idx_iem_cn_id
+			, rslt_idx_iem_id
+			, rslt_idx_detail_iem_id
+			, rslt_idx_std_iem_id
+			, rslt_idx_iem_cn
+			, creator_id
+			, created_dt
+			, updater_id
+			, updated_dt
+		from uspt_rslt_idx_iem_cn
+		where
+			rslt_idx_iem_cn_id = #{rsltIdxIemCnId}
+	</select>
+
+	<select id="selectList" resultType="aicluster.pms.common.entity.UsptRsltIdxIemCn">
+		/** UsptRsltIdxIemCnDao.selectList */
+		select
+			uriic.rslt_idx_iem_cn_id
+			, uriic.rslt_idx_detail_iem_id
+			, ubridi.detail_iem_nm
+			, uriic.rslt_idx_std_iem_id
+			, ubrisi.std_iem_nm
+			, uriic.rslt_idx_iem_cn
+			, case when ubrisi.rslt_idx_std_iem_id is null then ubridi.iem_unit_cd  else ubrisi.iem_unit_cd end  as iem_unit_cd
+		from uspt_rslt_idx_iem_cn uriic
+			inner join uspt_bsns_rslt_idx_detail_iem ubridi
+				on ubridi.rslt_idx_detail_iem_id = uriic.rslt_idx_detail_iem_id
+			left outer join uspt_bsns_rslt_idx_std_iem ubrisi
+				on ubrisi.rslt_idx_std_iem_id = uriic.rslt_idx_std_iem_id
+		where
+			uriic.rslt_idx_iem_id = #{rsltIdxIemId}
+		order by uriic.rslt_idx_detail_iem_id, uriic.rslt_idx_std_iem_id
+	</select>
+</mapper>

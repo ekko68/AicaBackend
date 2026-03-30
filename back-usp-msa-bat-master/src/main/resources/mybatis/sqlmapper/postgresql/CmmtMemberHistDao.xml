@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aicluster.batch.common.dao.CmmtMemberHistDao">
+
+	<insert id="insert">
+		/** CmmtMemberHistDao.insert */
+		insert into cmmt_member_hist (
+			hist_id
+			,hist_dt
+			,work_type_nm
+			,member_id
+			,worker_id
+			,work_cn
+		) values (
+			#{histId}
+			,#{histDt}
+			,#{workTypeNm}
+			,#{memberId}
+			,#{workerId}
+			,#{workCn}
+		)
+	</insert>
+
+	<insert id="insertList">
+		/** CmmtMemberHistDao.insert */
+		insert into cmmt_member_hist (
+			hist_id
+			,hist_dt
+			,work_type_nm
+			,member_id
+			,worker_id
+			,work_cn
+		) values
+		<foreach item="item" collection="list" separator=",">
+		(
+			 #{item.histId}
+			,#{item.histDt}
+			,#{item.workTypeNm}
+			,#{item.memberId}
+			,#{item.workerId}
+			,#{item.workCn}
+		)
+		</foreach>
+	</insert>
+</mapper>

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aicluster.batch.common.dao.CmmtCodeDao">
+
+	<sql id="cmmtCode_cols">
+		code_group
+		,code
+		,code_nm
+		,remark
+		,code_type
+		,enabled
+		,sort_order
+		,creator_id
+		,created_dt
+		,updater_id
+		,updated_dt
+	</sql>
+
+	<select id="selectList_enabled" resultType="aicluster.batch.common.entity.CmmtCode">
+		/** CmmtCodeDao.selectList_enabled */
+		select
+			<include refid="cmmtCode_cols"/>
+		from
+			cmmt_code
+		where
+			code_group = upper(#{codeGroup})
+			and enabled = true
+			<if test='codeType != null and codeType != ""'>
+				and code_type = upper(#{codeType})
+			</if>
+		order by
+			sort_order
+	</select>
+
+</mapper>

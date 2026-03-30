@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aicluster.common.common.dao.CmmtBoardAuthorityDao">
+
+	<sql id="cmmtBoardAuthority_cols">
+		 board_id
+		,authority_id
+		,board_authority
+		,creator_id
+		,created_dt
+		,(select authority_nm from cmmt_authority where authority_id = cba.authority_id) as authority_nm
+		,fn_cmm_get_code_nm('BOARD_AUTHORITY', cba.board_authority) as board_authority_nm
+	</sql>
+
+	<delete id="delete_board">
+		/** CmmtBoardAuthorityDao.delete_board */
+		delete from cmmt_board_authority
+		where
+			board_id = #{boardId}
+	</delete>
+
+	<select id="selectList" resultType="aicluster.common.common.entity.CmmtBoardAuthority">
+		/** CmmtBoardAuthorityDao.selectList */
+		select
+			<include refid="cmmtBoardAuthority_cols" />
+		from cmmt_board_authority cba
+		where
+			board_id = #{boardId}
+	</select>
+
+	<update id="save">
+		/** CmmtBoardAuthorityDao.save */
+		insert into cmmt_board_authority (
+			 board_id
+			,authority_id
+			,board_authority
+			,creator_id
+			,created_dt
+		) values (
+			 #{boardId}
+			,#{authorityId}
+			,#{boardAuthority}
+			,#{creatorId}
+			,#{createdDt}
+		) on conflict (board_id, authority_id)
+		do update set
+			 board_authority = #{boardAuthority}
+			,creator_id      = #{creatorId}
+			,created_dt      = #{createdDt}
+	</update>
+
+	<insert id="insertList">
+		/** CmmtBoardAuthorityDao.insertList */
+		insert into cmmt_board_authority (
+			 board_id
+			,authority_id
+			,board_authority
+			,creator_id
+			,created_dt
+		) values
+		<foreach item="item" index="index" collection="list" separator=",">
+			(
+				 #{item.boardId}
+				,#{item.authorityId}
+				,#{item.boardAuthority}
+				,#{item.creatorId}
+				,#{item.createdDt}
+			)
+		</foreach>
+	</insert>
+
+	<select id="select" resultType="aicluster.common.common.entity.CmmtBoardAuthority">
+		/** CmmtBoardAuthorityDao.select */
+		select
+			<include refid="cmmtBoardAuthority_cols" />
+		from cmmt_board_authority cba
+		where
+			board_id = #{boardId}
+			and authority_id = #{authorityId}
+	</select>
+</mapper>

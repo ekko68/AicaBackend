@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aicluster.pms.common.dao.UsptRsltIdxIemDao">
+	<insert id="insert">
+		/** UsptRsltIdxIemDao.insert */
+		insert into uspt_rslt_idx_iem
+			(
+				rslt_idx_iem_id
+				, rslt_id
+				, rslt_idx_id
+				, pruf_attachment_id
+				, creator_id
+				, created_dt
+				, updater_id
+				, updated_dt
+			) values (
+				#{rsltIdxIemId}
+				, #{rsltId}
+				, #{rsltIdxId}
+				, #{prufAttachmentId}
+				, #{creatorId}
+				, #{createdDt}
+				, #{updaterId}
+				, #{updatedDt}
+			)
+	</insert>
+
+	<update id="update">
+		/** UsptRsltIdxIemDao.update */
+		update uspt_rslt_idx_iem
+		set
+			pruf_attachment_id = #{prufAttachmentId}
+			, updater_id = #{updaterId}
+			, updated_dt = #{updatedDt}
+		where
+			rslt_idx_iem_id = #{rsltIdxIemId}
+	</update>
+
+	<select id="select" resultType="aicluster.pms.common.entity.UsptRsltIdxIem">
+		/** UsptRsltIdxIemDao.select */
+		select
+			rslt_idx_iem_id
+			, rslt_id
+			, rslt_idx_id
+			, pruf_attachment_id
+			, creator_id
+			, created_dt
+			, updater_id
+			, updated_dt
+		from uspt_rslt_idx_iem
+		where
+			rslt_idx_iem_id = #{rsltIdxIemId}
+	</select>
+
+	<select id="selectList" resultType="aicluster.pms.common.entity.UsptRsltIdxIem">
+		/** UsptRsltIdxIemDao.selectList */
+		select
+			urii.rslt_idx_iem_id
+			, urii.rslt_idx_id
+			, urii.pruf_attachment_id
+			, ubri.rslt_idx_nm
+			, ubri.rslt_idx_type_cd
+		from uspt_rslt_idx_iem urii
+			inner join uspt_bsns_rslt_idx ubri
+				on ubri.rslt_idx_id = urii.rslt_idx_id
+		where
+			urii.rslt_id = #{rsltId}
+		order by urii.rslt_idx_iem_id
+	</select>
+
+</mapper>

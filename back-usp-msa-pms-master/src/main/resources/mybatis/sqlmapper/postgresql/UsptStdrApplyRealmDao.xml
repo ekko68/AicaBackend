@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="aicluster.pms.common.dao.UsptStdrApplyRealmDao">
+
+	<select id="selectList" resultType="aicluster.pms.common.entity.UsptStdrApplyRealm">
+		/** UsptStdrApplyRealmDao.selectList */
+		select
+			stdr_bsns_cd
+			, apply_realm_id
+			, apply_realm_nm
+		from uspt_stdr_apply_realm
+		where
+			stdr_bsns_cd = #{stdrBsnsCd}
+	</select>
+
+
+	<insert id="insert">
+		/** UsptStdrApplyRealmDao.insert */
+		insert into uspt_stdr_apply_realm
+								(
+									apply_realm_id
+									, stdr_bsns_cd
+									, apply_realm_nm
+									, creator_id
+									, created_dt
+									, updater_id
+									, updated_dt
+								)
+						values	(
+									#{applyRealmId}
+									, #{stdrBsnsCd}
+									, #{applyRealmNm}
+									, #{creatorId}
+									, #{createdDt}
+									, #{updaterId}
+									, #{updatedDt}
+								)
+	</insert>
+
+
+	<update id="update">
+		/** UsptStdrApplyRealmDao.update */
+		update uspt_stdr_apply_realm
+		set
+			apply_realm_nm = #{applyRealmNm}
+			, updater_id = #{updaterId}
+			, updated_dt = #{updatedDt}
+		where
+			apply_realm_id = #{applyRealmId}
+			and stdr_bsns_cd = #{stdrBsnsCd}
+	</update>
+
+
+	<delete id="delete">
+		/** UsptStdrApplyRealmDao.delete */
+		delete from uspt_stdr_apply_realm
+		where
+			apply_realm_id = #{applyRealmId}
+			and stdr_bsns_cd = #{stdrBsnsCd}
+	</delete>
+
+</mapper>
